@@ -29,4 +29,7 @@ pub enum QueryErrorChirho {
 
     #[error("Invalid proximity distance: '{value_chirho}'")]
     InvalidProximityChirho { value_chirho: String },
+
+    #[error("Invalid morphology syntax: '{value_chirho}'")]
+    InvalidMorphSyntaxChirho { value_chirho: String },
 }

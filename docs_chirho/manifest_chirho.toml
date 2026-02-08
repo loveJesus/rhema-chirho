@@ -25,7 +25,7 @@ name_chirho = "rhema_contracts_chirho"
 purpose_chirho = "Shared type-level contracts, newtypes, DTOs, and trait definitions"
 layer_chirho = "core"
 phase_chirho = "A"
-modules_chirho = ["ids_chirho", "keys_chirho", "query_chirho", "corpus_chirho", "morphology_chirho", "result_chirho", "error_chirho", "capability_chirho"]
+modules_chirho = ["ids_chirho", "keys_chirho", "query_chirho", "corpus_chirho", "morphology_chirho", "morph_parser_chirho", "result_chirho", "error_chirho", "capability_chirho"]
 key_types_chirho = [
     "VerseRefChirho", "PassageRangeChirho", "ScopeChirho", "TestamentChirho",
     "QueryChirho", "QueryNodeChirho", "SearchHitChirho", "QueryResultChirho",
@@ -141,9 +141,9 @@ dependencies_chirho = ["rhema_contracts_chirho", "rhema_ingest_chirho", "tantivy
   tests_chirho = true
 
   [[crate_chirho.capability_chirho]]
-  name_chirho = "Morphology Index Fields (morph, lemma, pos)"
-  status_chirho = "planned"
-  tests_chirho = false
+  name_chirho = "Morphology Index Fields (morph, lemma, pos, tense, voice, mood, case, number, gender, person)"
+  status_chirho = "implemented"
+  tests_chirho = true
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "Semantic Domain Index Fields (sense, domain)"
@@ -205,9 +205,9 @@ dependencies_chirho = ["rhema_contracts_chirho", "rhema_index_chirho", "regex"]
   tests_chirho = true
 
   [[crate_chirho.capability_chirho]]
-  name_chirho = "Morphology Query Syntax (morph:, pos:, tense:)"
-  status_chirho = "planned"
-  tests_chirho = false
+  name_chirho = "Morphology Query Syntax (morph:, pos:, tense:, voice:, mood:, case:, number:, gender:, person:)"
+  status_chirho = "implemented"
+  tests_chirho = true
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "Semantic Domain Syntax (domain:, sense:)"
@@ -226,8 +226,8 @@ dependencies_chirho = ["rhema_contracts_chirho", "rhema_index_chirho", "regex"]
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "Morph Plan Step"
-  status_chirho = "stubbed"
-  tests_chirho = false
+  status_chirho = "implemented"
+  tests_chirho = true
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "GraphExpand Plan Step"
@@ -280,8 +280,8 @@ dependencies_chirho = ["rhema_contracts_chirho", "rhema_query_chirho", "rhema_in
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "Morphology Execution"
-  status_chirho = "planned"
-  tests_chirho = false
+  status_chirho = "implemented"
+  tests_chirho = true
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "Semantic Domain Execution"
@@ -474,6 +474,44 @@ dependencies_chirho = ["rhema_contracts_chirho", "rhema_ai_chirho", "async-trait
   tests_chirho = true
 
 [[crate_chirho]]
+name_chirho = "rhema_module_chirho"
+purpose_chirho = "SQLite-based module format: self-contained .rhema files with verses, tokens, morphology, and metadata"
+layer_chirho = "core"
+phase_chirho = "A"
+modules_chirho = ["schema_chirho", "writer_chirho", "reader_chirho", "morph_query_chirho", "converter_chirho", "error_chirho"]
+key_types_chirho = [
+    "ModuleWriterChirho", "ModuleReaderChirho", "VerseEntryChirho", "TokenEntryChirho",
+    "VerseRowChirho", "TokenRowChirho", "MorphHitChirho",
+    "SwordToRhemaConverterChirho", "ConversionResultChirho", "ModuleErrorChirho",
+]
+dependencies_chirho = ["rhema_contracts_chirho", "rhema_ingest_chirho", "rusqlite", "thiserror", "log", "serde", "serde_json"]
+
+  [[crate_chirho.capability_chirho]]
+  name_chirho = "SQLite Module Schema (verses, tokens, metadata)"
+  status_chirho = "implemented"
+  tests_chirho = true
+
+  [[crate_chirho.capability_chirho]]
+  name_chirho = "Module Writer (build .rhema from ingest data)"
+  status_chirho = "implemented"
+  tests_chirho = true
+
+  [[crate_chirho.capability_chirho]]
+  name_chirho = "Module Reader (query verses, tokens, morphology)"
+  status_chirho = "implemented"
+  tests_chirho = true
+
+  [[crate_chirho.capability_chirho]]
+  name_chirho = "Morphology Query via SQL WHERE"
+  status_chirho = "implemented"
+  tests_chirho = true
+
+  [[crate_chirho.capability_chirho]]
+  name_chirho = "SWORD → .rhema Converter"
+  status_chirho = "implemented"
+  tests_chirho = true
+
+[[crate_chirho]]
 name_chirho = "rhema_ffi_chirho"
 purpose_chirho = "C FFI bindings for embedding rhema in C/C++/Swift/Kotlin"
 layer_chirho = "integration"
@@ -634,12 +672,12 @@ tests_chirho = true
 
 [[search_feature_chirho]]
 name_chirho = "Morphological Search"
-status_chirho = "planned"
-parser_chirho = false
-planner_chirho = false
-executor_chirho = false
-tests_chirho = false
-note_chirho = "Types defined in contracts, planner stub exists, needs parser+index+executor"
+status_chirho = "implemented"
+parser_chirho = true
+planner_chirho = true
+executor_chirho = true
+tests_chirho = true
+note_chirho = "Robinson Greek + OSHM Hebrew morph codes, 9 prefix types (morph:, pos:, tense:, voice:, mood:, case:, number:, gender:, person:), Tantivy facet fields"
 
 [[search_feature_chirho]]
 name_chirho = "Semantic Domain Search"
@@ -789,6 +827,7 @@ rhema_gui_chirho = ["rhema_contracts_chirho"]
 rhema_api_chirho = ["rhema_contracts_chirho"]
 rhema_ai_chirho = ["rhema_contracts_chirho", "async-trait", "rusqlite"]
 rhema_discourse_chirho = ["rhema_contracts_chirho", "rhema_ai_chirho", "rusqlite"]
+rhema_module_chirho = ["rhema_contracts_chirho", "rhema_ingest_chirho", "rusqlite"]
 rhema_ffi_chirho = ["rhema_contracts_chirho"]
 rhema_wasm_chirho = ["rhema_contracts_chirho"]
 rhema_accel_chirho = ["rhema_contracts_chirho"]

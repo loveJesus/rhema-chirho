@@ -17,4 +17,5 @@ pub mod query_chirho;
 pub mod result_chirho;
 pub mod error_chirho;
 pub mod morphology_chirho;
+pub mod morph_parser_chirho;
 pub mod capability_chirho;

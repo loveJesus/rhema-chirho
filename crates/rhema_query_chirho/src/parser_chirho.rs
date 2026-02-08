@@ -14,6 +14,12 @@
 //! - Scope restrictions: `[John]` or `[Genesis-Deuteronomy]`
 
 use rhema_contracts_chirho::keys_chirho::ScopeChirho;
+use rhema_contracts_chirho::morph_parser_chirho::{
+    parse_case_name_chirho, parse_gender_name_chirho, parse_mood_name_chirho,
+    parse_number_name_chirho, parse_person_name_chirho, parse_pos_name_chirho,
+    parse_tense_name_chirho, parse_voice_name_chirho, MorphParserChirho,
+};
+use rhema_contracts_chirho::morphology_chirho::MorphConstraintChirho;
 use rhema_contracts_chirho::query_chirho::{QueryChirho, QueryNodeChirho};
 
 use crate::error_chirho::QueryErrorChirho;
@@ -264,6 +270,112 @@ fn try_parse_prefix_chirho(
             text_chirho: clean_chirho.to_string(),
             scope_chirho: None,
         }));
+    }
+
+    // Phase 3: Morphology search — `morph:V-AAI-3S` (full Robinson/OSHM code)
+    if let Some(value_chirho) = input_chirho.strip_prefix("morph:") {
+        let constraint_chirho = MorphParserChirho::constraint_from_code_chirho(value_chirho)
+            .map_err(|_| QueryErrorChirho::InvalidMorphSyntaxChirho {
+                value_chirho: value_chirho.to_string(),
+            })?;
+        return Ok(Some(QueryNodeChirho::MorphChirho(constraint_chirho)));
+    }
+
+    // Phase 3: Individual morph facet prefixes
+    if let Some(value_chirho) = input_chirho.strip_prefix("pos:") {
+        let pos_chirho = parse_pos_name_chirho(value_chirho).ok_or(
+            QueryErrorChirho::InvalidMorphSyntaxChirho {
+                value_chirho: value_chirho.to_string(),
+            },
+        )?;
+        return Ok(Some(QueryNodeChirho::MorphChirho(MorphConstraintChirho {
+            part_of_speech_chirho: Some(pos_chirho),
+            ..Default::default()
+        })));
+    }
+
+    if let Some(value_chirho) = input_chirho.strip_prefix("tense:") {
+        let tense_chirho = parse_tense_name_chirho(value_chirho).ok_or(
+            QueryErrorChirho::InvalidMorphSyntaxChirho {
+                value_chirho: value_chirho.to_string(),
+            },
+        )?;
+        return Ok(Some(QueryNodeChirho::MorphChirho(MorphConstraintChirho {
+            tense_chirho: Some(tense_chirho),
+            ..Default::default()
+        })));
+    }
+
+    if let Some(value_chirho) = input_chirho.strip_prefix("voice:") {
+        let voice_chirho = parse_voice_name_chirho(value_chirho).ok_or(
+            QueryErrorChirho::InvalidMorphSyntaxChirho {
+                value_chirho: value_chirho.to_string(),
+            },
+        )?;
+        return Ok(Some(QueryNodeChirho::MorphChirho(MorphConstraintChirho {
+            voice_chirho: Some(voice_chirho),
+            ..Default::default()
+        })));
+    }
+
+    if let Some(value_chirho) = input_chirho.strip_prefix("mood:") {
+        let mood_chirho = parse_mood_name_chirho(value_chirho).ok_or(
+            QueryErrorChirho::InvalidMorphSyntaxChirho {
+                value_chirho: value_chirho.to_string(),
+            },
+        )?;
+        return Ok(Some(QueryNodeChirho::MorphChirho(MorphConstraintChirho {
+            mood_chirho: Some(mood_chirho),
+            ..Default::default()
+        })));
+    }
+
+    if let Some(value_chirho) = input_chirho.strip_prefix("case:") {
+        let case_chirho = parse_case_name_chirho(value_chirho).ok_or(
+            QueryErrorChirho::InvalidMorphSyntaxChirho {
+                value_chirho: value_chirho.to_string(),
+            },
+        )?;
+        return Ok(Some(QueryNodeChirho::MorphChirho(MorphConstraintChirho {
+            case_chirho: Some(case_chirho),
+            ..Default::default()
+        })));
+    }
+
+    if let Some(value_chirho) = input_chirho.strip_prefix("number:") {
+        let number_chirho = parse_number_name_chirho(value_chirho).ok_or(
+            QueryErrorChirho::InvalidMorphSyntaxChirho {
+                value_chirho: value_chirho.to_string(),
+            },
+        )?;
+        return Ok(Some(QueryNodeChirho::MorphChirho(MorphConstraintChirho {
+            number_chirho: Some(number_chirho),
+            ..Default::default()
+        })));
+    }
+
+    if let Some(value_chirho) = input_chirho.strip_prefix("gender:") {
+        let gender_chirho = parse_gender_name_chirho(value_chirho).ok_or(
+            QueryErrorChirho::InvalidMorphSyntaxChirho {
+                value_chirho: value_chirho.to_string(),
+            },
+        )?;
+        return Ok(Some(QueryNodeChirho::MorphChirho(MorphConstraintChirho {
+            gender_chirho: Some(gender_chirho),
+            ..Default::default()
+        })));
+    }
+
+    if let Some(value_chirho) = input_chirho.strip_prefix("person:") {
+        let person_chirho = parse_person_name_chirho(value_chirho).ok_or(
+            QueryErrorChirho::InvalidMorphSyntaxChirho {
+                value_chirho: value_chirho.to_string(),
+            },
+        )?;
+        return Ok(Some(QueryNodeChirho::MorphChirho(MorphConstraintChirho {
+            person_chirho: Some(person_chirho),
+            ..Default::default()
+        })));
     }
 
     Ok(None)
@@ -742,6 +854,195 @@ mod tests_chirho {
                 assert_eq!(text_chirho, "resurrection");
             }
             other_chirho => panic!("Expected PropositionTextChirho, got {:?}", other_chirho),
+        }
+    }
+
+    // ── Phase 3: Morphology prefix tests ─────────────────────────
+
+    #[test]
+    fn test_morph_full_code_prefix_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("morph:V-AAI-3S").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::MorphChirho(constraint_chirho) => {
+                assert_eq!(
+                    constraint_chirho.part_of_speech_chirho,
+                    Some(rhema_contracts_chirho::morphology_chirho::PartOfSpeechChirho::VerbChirho)
+                );
+                assert_eq!(
+                    constraint_chirho.tense_chirho,
+                    Some(rhema_contracts_chirho::morphology_chirho::TenseChirho::AoristChirho)
+                );
+            }
+            other_chirho => panic!("Expected MorphChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_pos_prefix_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("pos:verb").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::MorphChirho(constraint_chirho) => {
+                assert_eq!(
+                    constraint_chirho.part_of_speech_chirho,
+                    Some(rhema_contracts_chirho::morphology_chirho::PartOfSpeechChirho::VerbChirho)
+                );
+            }
+            other_chirho => panic!("Expected MorphChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_tense_prefix_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("tense:aorist").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::MorphChirho(constraint_chirho) => {
+                assert_eq!(
+                    constraint_chirho.tense_chirho,
+                    Some(rhema_contracts_chirho::morphology_chirho::TenseChirho::AoristChirho)
+                );
+            }
+            other_chirho => panic!("Expected MorphChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_voice_prefix_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("voice:active").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::MorphChirho(constraint_chirho) => {
+                assert_eq!(
+                    constraint_chirho.voice_chirho,
+                    Some(rhema_contracts_chirho::morphology_chirho::VoiceChirho::ActiveChirho)
+                );
+            }
+            other_chirho => panic!("Expected MorphChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_mood_prefix_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("mood:indicative").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::MorphChirho(constraint_chirho) => {
+                assert_eq!(
+                    constraint_chirho.mood_chirho,
+                    Some(rhema_contracts_chirho::morphology_chirho::MoodChirho::IndicativeChirho)
+                );
+            }
+            other_chirho => panic!("Expected MorphChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_case_prefix_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("case:genitive").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::MorphChirho(constraint_chirho) => {
+                assert_eq!(
+                    constraint_chirho.case_chirho,
+                    Some(rhema_contracts_chirho::morphology_chirho::CaseChirho::GenitiveChirho)
+                );
+            }
+            other_chirho => panic!("Expected MorphChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_number_prefix_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("number:singular").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::MorphChirho(constraint_chirho) => {
+                assert_eq!(
+                    constraint_chirho.number_chirho,
+                    Some(rhema_contracts_chirho::morphology_chirho::GrammaticalNumberChirho::SingularChirho)
+                );
+            }
+            other_chirho => panic!("Expected MorphChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_gender_prefix_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("gender:masculine").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::MorphChirho(constraint_chirho) => {
+                assert_eq!(
+                    constraint_chirho.gender_chirho,
+                    Some(rhema_contracts_chirho::morphology_chirho::GenderChirho::MasculineChirho)
+                );
+            }
+            other_chirho => panic!("Expected MorphChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_person_prefix_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("person:3").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::MorphChirho(constraint_chirho) => {
+                assert_eq!(
+                    constraint_chirho.person_chirho,
+                    Some(rhema_contracts_chirho::morphology_chirho::PersonChirho::ThirdChirho)
+                );
+            }
+            other_chirho => panic!("Expected MorphChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_invalid_morph_prefix_chirho() {
+        let result_chirho = QueryParserChirho::parse_chirho("morph:ZZZZZ");
+        assert!(result_chirho.is_err());
+    }
+
+    #[test]
+    fn test_invalid_pos_prefix_chirho() {
+        let result_chirho = QueryParserChirho::parse_chirho("pos:xylophone");
+        assert!(result_chirho.is_err());
+    }
+
+    #[test]
+    fn test_morph_and_term_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("pos:verb AND love").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::AndChirho(children_chirho) => {
+                assert_eq!(children_chirho.len(), 2);
+                assert!(matches!(children_chirho[0], QueryNodeChirho::MorphChirho(_)));
+                assert!(matches!(children_chirho[1], QueryNodeChirho::TermChirho { .. }));
+            }
+            other_chirho => panic!("Expected AndChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_morph_hebrew_code_prefix_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("morph:HNcmsa").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::MorphChirho(constraint_chirho) => {
+                assert_eq!(
+                    constraint_chirho.part_of_speech_chirho,
+                    Some(rhema_contracts_chirho::morphology_chirho::PartOfSpeechChirho::NounChirho)
+                );
+            }
+            other_chirho => panic!("Expected MorphChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_morph_noun_prefix_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("morph:N-GSF").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::MorphChirho(constraint_chirho) => {
+                assert_eq!(
+                    constraint_chirho.part_of_speech_chirho,
+                    Some(rhema_contracts_chirho::morphology_chirho::PartOfSpeechChirho::NounChirho)
+                );
+                assert_eq!(
+                    constraint_chirho.case_chirho,
+                    Some(rhema_contracts_chirho::morphology_chirho::CaseChirho::GenitiveChirho)
+                );
+            }
+            other_chirho => panic!("Expected MorphChirho, got {:?}", other_chirho),
         }
     }
 }

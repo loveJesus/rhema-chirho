@@ -161,7 +161,7 @@ pub struct ParsedMorphologyChirho {
 }
 
 /// Constraint for morphology search queries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct MorphConstraintChirho {
     pub part_of_speech_chirho: Option<PartOfSpeechChirho>,
     pub person_chirho: Option<PersonChirho>,

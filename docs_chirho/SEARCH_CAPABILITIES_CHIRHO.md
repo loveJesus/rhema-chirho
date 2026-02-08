@@ -20,7 +20,7 @@ This document tracks rhema_chirho search features vs Logos/Accordance/BibleArc p
 | Lemma Search | **implemented** | yes | yes | yes | yes | Falls back to full-text search on lemma string |
 | Scope Filtering (Book/Testament) | **implemented** | yes | yes | yes | yes |  |
 | Implicit AND (multi-word) | **implemented** | yes | yes | yes | yes |  |
-| Morphological Search | **planned** | - | - | - | - | Types defined in contracts, planner stub exists, needs parser+index+executor |
+| Morphological Search | **implemented** | yes | yes | yes | yes | Robinson Greek + OSHM Hebrew morph codes, 9 prefix types (morph:, pos:, tense:, voice:, mood:, case:, number:, gender:, person:), Tantivy facet fields |
 | Semantic Domain Search | **planned** | - | - | - | - | Requires semantic-chirho SQLite bridge |
 | Cross-Reference Graph Search | **planned** | - | - | - | - | GraphExpandChirho node exists in IR, planner stub exists |
 | Syntax/Clause Search | **planned** | - | - | - | - | Phase D research track (ETCBC/BHSA data) |
@@ -34,9 +34,9 @@ This document tracks rhema_chirho search features vs Logos/Accordance/BibleArc p
 
 ## Summary
 
-- **Implemented:** 15/21
+- **Implemented:** 16/21
 - **Stubbed:** 0/21
-- **Planned:** 6/21
+- **Planned:** 5/21
 
 ## Logos/Accordance/BibleArc Comparison
 

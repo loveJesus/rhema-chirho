@@ -24,6 +24,7 @@ Version: 0.1.0 | License: GPL-2.0-or-later
 | `rhema_api_chirho` | REST API server and external platform integration clients | integration | B |
 | `rhema_ai_chirho` | AI/LLM integration: embedding generation, semantic search, vector store, query expansion, hybrid ranking | integration | B |
 | `rhema_discourse_chirho` | Discourse analysis engine: arcing, bracketing, phrasing with 22 relationship types | integration | B |
+| `rhema_module_chirho` | SQLite-based module format: self-contained .rhema files with verses, tokens, morphology, and metadata | core | A |
 | `rhema_ffi_chirho` | C FFI bindings for embedding rhema in C/C++/Swift/Kotlin | integration | B |
 | `rhema_wasm_chirho` | WASM build target for browser-based search | integration | B |
 | `rhema_accel_chirho` | Hardware acceleration research: SIMD, GPU compute via wgpu | research | D |
@@ -34,7 +35,7 @@ Version: 0.1.0 | License: GPL-2.0-or-later
 
 ### rhema_contracts_chirho
 - Traits: `QueryExecutorChirho`, `CorpusReaderChirho`, `IngestAdapterChirho`
-- Modules: ids_chirho, keys_chirho, query_chirho, corpus_chirho, morphology_chirho, result_chirho, error_chirho, capability_chirho
+- Modules: ids_chirho, keys_chirho, query_chirho, corpus_chirho, morphology_chirho, morph_parser_chirho, result_chirho, error_chirho, capability_chirho
 
 ### rhema_ingest_chirho
 - Types: `SwordAdapterChirho`, `TokenExtractorChirho`
@@ -71,7 +72,7 @@ Version: 0.1.0 | License: GPL-2.0-or-later
 | rhema_index_chirho | Strong's Number Search | DONE | yes |
 | rhema_index_chirho | Book-scoped Search | DONE | yes |
 | rhema_index_chirho | Manifest Versioning | DONE | yes |
-| rhema_index_chirho | Morphology Index Fields (morph, lemma, pos) | TODO | no |
+| rhema_index_chirho | Morphology Index Fields (morph, lemma, pos, tense, voice, mood, case, number, gender, person) | DONE | yes |
 | rhema_index_chirho | Semantic Domain Index Fields (sense, domain) | TODO | no |
 | rhema_index_chirho | Cross-Reference Graph Index | TODO | no |
 | rhema_query_chirho | Simple Term Parsing | DONE | yes |
@@ -82,11 +83,11 @@ Version: 0.1.0 | License: GPL-2.0-or-later
 | rhema_query_chirho | Proximity (NEAR/N) | DONE | yes |
 | rhema_query_chirho | Scope Filtering ([Book], [OT], [NT]) | DONE | yes |
 | rhema_query_chirho | Implicit AND (multi-word) | DONE | yes |
-| rhema_query_chirho | Morphology Query Syntax (morph:, pos:, tense:) | TODO | no |
+| rhema_query_chirho | Morphology Query Syntax (morph:, pos:, tense:, voice:, mood:, case:, number:, gender:, person:) | DONE | yes |
 | rhema_query_chirho | Semantic Domain Syntax (domain:, sense:) | TODO | no |
 | rhema_query_chirho | Cross-Reference Syntax (xref:, XREF/N) | TODO | no |
 | rhema_query_chirho | Query Plan Optimization | DONE | yes |
-| rhema_query_chirho | Morph Plan Step | STUB | no |
+| rhema_query_chirho | Morph Plan Step | DONE | yes |
 | rhema_query_chirho | GraphExpand Plan Step | STUB | no |
 | rhema_exec_chirho | Tantivy-backed Full-text Execution | DONE | yes |
 | rhema_exec_chirho | Regex Fallback Execution | DONE | yes |
@@ -95,7 +96,7 @@ Version: 0.1.0 | License: GPL-2.0-or-later
 | rhema_exec_chirho | OR Union Execution | DONE | yes |
 | rhema_exec_chirho | NOT Exclusion Execution | DONE | yes |
 | rhema_exec_chirho | Proximity Execution | DONE | yes |
-| rhema_exec_chirho | Morphology Execution | TODO | no |
+| rhema_exec_chirho | Morphology Execution | DONE | yes |
 | rhema_exec_chirho | Semantic Domain Execution | TODO | no |
 | rhema_exec_chirho | Cross-Reference Graph Execution | TODO | no |
 | rhema_exec_chirho | Saved Searches Persistence | TODO | no |
@@ -120,6 +121,11 @@ Version: 0.1.0 | License: GPL-2.0-or-later
 | rhema_discourse_chirho | LLM-Powered Arc Generation | DONE | yes |
 | rhema_discourse_chirho | Discourse Search Integration | DONE | yes |
 | rhema_discourse_chirho | JSON Import/Export (round-trip) | DONE | yes |
+| rhema_module_chirho | SQLite Module Schema (verses, tokens, metadata) | DONE | yes |
+| rhema_module_chirho | Module Writer (build .rhema from ingest data) | DONE | yes |
+| rhema_module_chirho | Module Reader (query verses, tokens, morphology) | DONE | yes |
+| rhema_module_chirho | Morphology Query via SQL WHERE | DONE | yes |
+| rhema_module_chirho | SWORD → .rhema Converter | DONE | yes |
 | rhema_ffi_chirho | C FFI Bindings | TODO | no |
 | rhema_wasm_chirho | WASM Target | TODO | no |
 | rhema_accel_chirho | SIMD Acceleration | TODO | no |
@@ -140,7 +146,7 @@ Version: 0.1.0 | License: GPL-2.0-or-later
 | Lemma Search | implemented | yes | yes | yes | yes |
 | Scope Filtering (Book/Testament) | implemented | yes | yes | yes | yes |
 | Implicit AND (multi-word) | implemented | yes | yes | yes | yes |
-| Morphological Search | planned | no | no | no | no |
+| Morphological Search | implemented | yes | yes | yes | yes |
 | Semantic Domain Search | planned | no | no | no | no |
 | Cross-Reference Graph Search | planned | no | no | no | no |
 | Syntax/Clause Search | planned | no | no | no | no |
@@ -166,6 +172,7 @@ Version: 0.1.0 | License: GPL-2.0-or-later
 - `rhema_api_chirho` → rhema_contracts_chirho
 - `rhema_ai_chirho` → rhema_contracts_chirho, async-trait, rusqlite
 - `rhema_discourse_chirho` → rhema_contracts_chirho, rhema_ai_chirho, rusqlite
+- `rhema_module_chirho` → rhema_contracts_chirho, rhema_ingest_chirho, rusqlite
 - `rhema_ffi_chirho` → rhema_contracts_chirho
 - `rhema_wasm_chirho` → rhema_contracts_chirho
 - `rhema_accel_chirho` → rhema_contracts_chirho
@@ -206,6 +213,7 @@ rhema_chirho/
     rhema_api_chirho/
     rhema_ai_chirho/
     rhema_discourse_chirho/
+    rhema_module_chirho/
     rhema_ffi_chirho/
     rhema_wasm_chirho/
     rhema_accel_chirho/

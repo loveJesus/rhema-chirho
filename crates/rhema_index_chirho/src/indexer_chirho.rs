@@ -9,6 +9,7 @@ use std::time::Instant;
 
 use tantivy::{Index, IndexWriter, TantivyDocument};
 
+use rhema_contracts_chirho::morph_parser_chirho::MorphParserChirho;
 use rhema_ingest_chirho::sword_adapter_chirho::SwordAdapterChirho;
 use rhema_ingest_chirho::token_extractor_chirho::TokenExtractorChirho;
 
@@ -166,6 +167,90 @@ impl ModuleIndexerChirho {
                     if !strongs_text_chirho.is_empty() {
                         doc_chirho
                             .add_text(self.schema_chirho.strongs_field_chirho, &strongs_text_chirho);
+                    }
+
+                    // Phase 3: Add morphology facets from tokens.
+                    if let Some(ref verse_tokens_chirho) = tokens_chirho {
+                        let mut morph_codes_chirho = Vec::new();
+                        let mut lemma_strings_chirho = Vec::new();
+
+                        for tok_chirho in verse_tokens_chirho
+                            .iter()
+                            .filter(|t_chirho| t_chirho.verse_ref_chirho == *verse_ref_chirho)
+                        {
+                            // Collect lemma
+                            if let Some(ref lemma_chirho) = tok_chirho.lemma_chirho {
+                                lemma_strings_chirho.push(lemma_chirho.as_str_chirho().to_string());
+                            }
+
+                            // Parse morph code and add facets
+                            if let Some(ref morph_chirho) = tok_chirho.morph_chirho {
+                                let code_str_chirho = morph_chirho.as_str_chirho();
+                                morph_codes_chirho.push(code_str_chirho.to_string());
+
+                                if let Ok(parsed_chirho) = MorphParserChirho::parse_chirho(code_str_chirho) {
+                                    doc_chirho.add_text(
+                                        self.schema_chirho.pos_field_chirho,
+                                        &format!("{:?}", parsed_chirho.part_of_speech_chirho),
+                                    );
+                                    if let Some(ref t_chirho) = parsed_chirho.tense_chirho {
+                                        doc_chirho.add_text(
+                                            self.schema_chirho.tense_field_chirho,
+                                            &format!("{t_chirho:?}"),
+                                        );
+                                    }
+                                    if let Some(ref v_chirho) = parsed_chirho.voice_chirho {
+                                        doc_chirho.add_text(
+                                            self.schema_chirho.voice_field_chirho,
+                                            &format!("{v_chirho:?}"),
+                                        );
+                                    }
+                                    if let Some(ref m_chirho) = parsed_chirho.mood_chirho {
+                                        doc_chirho.add_text(
+                                            self.schema_chirho.mood_field_chirho,
+                                            &format!("{m_chirho:?}"),
+                                        );
+                                    }
+                                    if let Some(ref c_chirho) = parsed_chirho.case_chirho {
+                                        doc_chirho.add_text(
+                                            self.schema_chirho.case_field_chirho,
+                                            &format!("{c_chirho:?}"),
+                                        );
+                                    }
+                                    if let Some(ref n_chirho) = parsed_chirho.number_chirho {
+                                        doc_chirho.add_text(
+                                            self.schema_chirho.number_field_chirho,
+                                            &format!("{n_chirho:?}"),
+                                        );
+                                    }
+                                    if let Some(ref g_chirho) = parsed_chirho.gender_chirho {
+                                        doc_chirho.add_text(
+                                            self.schema_chirho.gender_field_chirho,
+                                            &format!("{g_chirho:?}"),
+                                        );
+                                    }
+                                    if let Some(ref p_chirho) = parsed_chirho.person_chirho {
+                                        doc_chirho.add_text(
+                                            self.schema_chirho.person_field_chirho,
+                                            &format!("{p_chirho:?}"),
+                                        );
+                                    }
+                                }
+                            }
+                        }
+
+                        if !morph_codes_chirho.is_empty() {
+                            doc_chirho.add_text(
+                                self.schema_chirho.morph_field_chirho,
+                                &morph_codes_chirho.join(" "),
+                            );
+                        }
+                        if !lemma_strings_chirho.is_empty() {
+                            doc_chirho.add_text(
+                                self.schema_chirho.lemma_field_chirho,
+                                &lemma_strings_chirho.join(" "),
+                            );
+                        }
                     }
 
                     writer_chirho.add_document(doc_chirho)?;

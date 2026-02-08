@@ -3,9 +3,12 @@
 // John 3:16
 
 //! Rhema index schema — defines the Tantivy schema with structured fields
-//! for books, chapters, verses, Strong's numbers, and full text.
+//! for books, chapters, verses, Strong's numbers, morphology, and full text.
 
 use tantivy::schema::{Field, Schema, FAST, INDEXED, STORED, STRING, TEXT};
+
+/// Schema version — bump when fields change (invalidates existing indexes).
+pub const SCHEMA_VERSION_CHIRHO: u32 = 2;
 
 /// Field names for the Rhema Tantivy schema.
 pub const FIELD_KEY_CHIRHO: &str = "key";
@@ -16,6 +19,18 @@ pub const FIELD_TEXT_CHIRHO: &str = "text";
 pub const FIELD_STRONGS_CHIRHO: &str = "strongs";
 pub const FIELD_MODULE_CHIRHO: &str = "module";
 
+// Phase 3: Morphology fields
+pub const FIELD_MORPH_CHIRHO: &str = "morph";
+pub const FIELD_LEMMA_CHIRHO: &str = "lemma";
+pub const FIELD_POS_CHIRHO: &str = "pos";
+pub const FIELD_TENSE_CHIRHO: &str = "tense";
+pub const FIELD_VOICE_CHIRHO: &str = "voice";
+pub const FIELD_MOOD_CHIRHO: &str = "mood";
+pub const FIELD_CASE_CHIRHO: &str = "case_field";
+pub const FIELD_NUMBER_CHIRHO: &str = "number_field";
+pub const FIELD_GENDER_CHIRHO: &str = "gender";
+pub const FIELD_PERSON_CHIRHO: &str = "person";
+
 /// The Rhema index schema with all field handles.
 #[derive(Clone, Debug)]
 pub struct RhemaSchemaChirho {
@@ -25,9 +40,9 @@ pub struct RhemaSchemaChirho {
     pub key_field_chirho: Field,
     /// Book name — e.g., "Genesis" (stored, keyword for filtering).
     pub book_field_chirho: Field,
-    /// Chapter number as string — e.g., "1" (stored, keyword for filtering).
+    /// Chapter number (stored, indexed, fast).
     pub chapter_field_chirho: Field,
-    /// Verse number as string — e.g., "1" (stored, keyword for filtering).
+    /// Verse number (stored, indexed, fast).
     pub verse_field_chirho: Field,
     /// Full text of the verse — tokenized and indexed for search.
     pub text_field_chirho: Field,
@@ -35,6 +50,28 @@ pub struct RhemaSchemaChirho {
     pub strongs_field_chirho: Field,
     /// Module name — e.g., "KJV" (stored, keyword for multi-module indexes).
     pub module_field_chirho: Field,
+
+    // Phase 3: Morphology fields
+    /// Raw morph code(s) — tokenized text (multiple per verse).
+    pub morph_field_chirho: Field,
+    /// Lemma strings — tokenized text (multiple per verse).
+    pub lemma_field_chirho: Field,
+    /// Part of speech facet — keyword (e.g., "VerbChirho").
+    pub pos_field_chirho: Field,
+    /// Tense facet — keyword.
+    pub tense_field_chirho: Field,
+    /// Voice facet — keyword.
+    pub voice_field_chirho: Field,
+    /// Mood facet — keyword.
+    pub mood_field_chirho: Field,
+    /// Case facet — keyword.
+    pub case_field_chirho: Field,
+    /// Grammatical number facet — keyword.
+    pub number_field_chirho: Field,
+    /// Gender facet — keyword.
+    pub gender_field_chirho: Field,
+    /// Person facet — keyword.
+    pub person_field_chirho: Field,
 }
 
 impl RhemaSchemaChirho {
@@ -64,6 +101,28 @@ impl RhemaSchemaChirho {
         let module_field_chirho =
             builder_chirho.add_text_field(FIELD_MODULE_CHIRHO, STRING | STORED);
 
+        // Phase 3: Morphology fields
+        let morph_field_chirho =
+            builder_chirho.add_text_field(FIELD_MORPH_CHIRHO, TEXT);
+        let lemma_field_chirho =
+            builder_chirho.add_text_field(FIELD_LEMMA_CHIRHO, TEXT);
+        let pos_field_chirho =
+            builder_chirho.add_text_field(FIELD_POS_CHIRHO, STRING);
+        let tense_field_chirho =
+            builder_chirho.add_text_field(FIELD_TENSE_CHIRHO, STRING);
+        let voice_field_chirho =
+            builder_chirho.add_text_field(FIELD_VOICE_CHIRHO, STRING);
+        let mood_field_chirho =
+            builder_chirho.add_text_field(FIELD_MOOD_CHIRHO, STRING);
+        let case_field_chirho =
+            builder_chirho.add_text_field(FIELD_CASE_CHIRHO, STRING);
+        let number_field_chirho =
+            builder_chirho.add_text_field(FIELD_NUMBER_CHIRHO, STRING);
+        let gender_field_chirho =
+            builder_chirho.add_text_field(FIELD_GENDER_CHIRHO, STRING);
+        let person_field_chirho =
+            builder_chirho.add_text_field(FIELD_PERSON_CHIRHO, STRING);
+
         let schema_chirho = builder_chirho.build();
 
         Self {
@@ -75,6 +134,16 @@ impl RhemaSchemaChirho {
             text_field_chirho,
             strongs_field_chirho,
             module_field_chirho,
+            morph_field_chirho,
+            lemma_field_chirho,
+            pos_field_chirho,
+            tense_field_chirho,
+            voice_field_chirho,
+            mood_field_chirho,
+            case_field_chirho,
+            number_field_chirho,
+            gender_field_chirho,
+            person_field_chirho,
         }
     }
 }
@@ -86,36 +155,39 @@ mod tests_chirho {
     #[test]
     fn test_schema_fields_chirho() {
         let schema_chirho = RhemaSchemaChirho::build_chirho();
-        // Verify all fields are present
-        assert!(
-            schema_chirho
-                .schema_chirho
-                .get_field(FIELD_KEY_CHIRHO)
-                .is_ok()
-        );
-        assert!(
-            schema_chirho
-                .schema_chirho
-                .get_field(FIELD_TEXT_CHIRHO)
-                .is_ok()
-        );
-        assert!(
-            schema_chirho
-                .schema_chirho
-                .get_field(FIELD_STRONGS_CHIRHO)
-                .is_ok()
-        );
-        assert!(
-            schema_chirho
-                .schema_chirho
-                .get_field(FIELD_BOOK_CHIRHO)
-                .is_ok()
-        );
-        assert!(
-            schema_chirho
-                .schema_chirho
-                .get_field(FIELD_MODULE_CHIRHO)
-                .is_ok()
-        );
+        // Verify all original fields are present
+        assert!(schema_chirho.schema_chirho.get_field(FIELD_KEY_CHIRHO).is_ok());
+        assert!(schema_chirho.schema_chirho.get_field(FIELD_TEXT_CHIRHO).is_ok());
+        assert!(schema_chirho.schema_chirho.get_field(FIELD_STRONGS_CHIRHO).is_ok());
+        assert!(schema_chirho.schema_chirho.get_field(FIELD_BOOK_CHIRHO).is_ok());
+        assert!(schema_chirho.schema_chirho.get_field(FIELD_MODULE_CHIRHO).is_ok());
+    }
+
+    #[test]
+    fn test_morph_fields_exist_chirho() {
+        let schema_chirho = RhemaSchemaChirho::build_chirho();
+        assert!(schema_chirho.schema_chirho.get_field(FIELD_MORPH_CHIRHO).is_ok());
+        assert!(schema_chirho.schema_chirho.get_field(FIELD_LEMMA_CHIRHO).is_ok());
+        assert!(schema_chirho.schema_chirho.get_field(FIELD_POS_CHIRHO).is_ok());
+        assert!(schema_chirho.schema_chirho.get_field(FIELD_TENSE_CHIRHO).is_ok());
+        assert!(schema_chirho.schema_chirho.get_field(FIELD_VOICE_CHIRHO).is_ok());
+        assert!(schema_chirho.schema_chirho.get_field(FIELD_MOOD_CHIRHO).is_ok());
+        assert!(schema_chirho.schema_chirho.get_field(FIELD_CASE_CHIRHO).is_ok());
+        assert!(schema_chirho.schema_chirho.get_field(FIELD_NUMBER_CHIRHO).is_ok());
+        assert!(schema_chirho.schema_chirho.get_field(FIELD_GENDER_CHIRHO).is_ok());
+        assert!(schema_chirho.schema_chirho.get_field(FIELD_PERSON_CHIRHO).is_ok());
+    }
+
+    #[test]
+    fn test_schema_version_chirho() {
+        assert_eq!(SCHEMA_VERSION_CHIRHO, 2);
+    }
+
+    #[test]
+    fn test_total_field_count_chirho() {
+        let schema_chirho = RhemaSchemaChirho::build_chirho();
+        // 7 original + 10 morph = 17 fields
+        let field_count_chirho = schema_chirho.schema_chirho.fields().count();
+        assert_eq!(field_count_chirho, 17);
     }
 }

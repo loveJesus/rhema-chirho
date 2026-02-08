@@ -25,6 +25,9 @@ members = [
     # Discourse analysis (Phase 2)
     "crates/rhema_discourse_chirho",
 
+    # Module format (Phase 3)
+    "crates/rhema_module_chirho",
+
     # Acceleration (Research track)
     "crates/rhema_accel_chirho",
 
@@ -100,6 +103,7 @@ rhema_index_chirho = { version = "0.1.0", path = "crates/rhema_index_chirho" }
 rhema_query_chirho = { version = "0.1.0", path = "crates/rhema_query_chirho" }
 rhema_exec_chirho = { version = "0.1.0", path = "crates/rhema_exec_chirho" }
 rhema_integration_chirho = { version = "0.1.0", path = "crates/rhema_integration_chirho" }
+rhema_module_chirho = { version = "0.1.0", path = "crates/rhema_module_chirho" }
 rhema_testkit_chirho = { version = "0.1.0", path = "crates/rhema_testkit_chirho" }
 rhema_accel_chirho = { version = "0.1.0", path = "crates/rhema_accel_chirho" }
 

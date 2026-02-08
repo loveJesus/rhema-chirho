@@ -295,6 +295,45 @@ impl QueryExecutorImplChirho {
                 );
                 Ok(Vec::new())
             }
+
+            // ── Phase 3: Morphology search ──────────────────────────
+
+            PlanStepChirho::MorphLookupChirho { constraint_chirho } => {
+                // Use Tantivy index morph facets when available.
+                if let Some(ref base_chirho) = self.index_base_chirho {
+                    let indexer_chirho = ModuleIndexerChirho::new_chirho(base_chirho);
+                    if indexer_chirho.has_index_chirho(module_name_chirho) {
+                        let index_path_chirho = indexer_chirho.index_path_chirho(module_name_chirho);
+                        if let Ok(searcher_chirho) = IndexSearcherChirho::open_chirho(&index_path_chirho) {
+                            if let Ok(index_hits_chirho) = searcher_chirho.search_morph_chirho(constraint_chirho, 500) {
+                                let mut hits_chirho = Vec::with_capacity(index_hits_chirho.len());
+                                for hit_chirho in index_hits_chirho {
+                                    if let Some(verse_ref_chirho) = parse_verse_ref_chirho(&hit_chirho.key_chirho) {
+                                        hits_chirho.push(SearchHitChirho {
+                                            verse_ref_chirho,
+                                            text_chirho: hit_chirho.text_chirho,
+                                            highlighted_text_chirho: None,
+                                            score_chirho: hit_chirho.score_chirho,
+                                            matched_positions_chirho: Vec::new(),
+                                            explain_chirho: None,
+                                            semantic_score_chirho: None,
+                                            hybrid_score_chirho: None,
+                                            semantic_explain_chirho: None,
+                                        });
+                                    }
+                                }
+                                return Ok(hits_chirho);
+                            }
+                        }
+                    }
+                }
+                // Graceful fallback: warn + empty results if no index.
+                log::warn!(
+                    "MorphLookup for module '{}' — no index available, returning empty",
+                    module_name_chirho
+                );
+                Ok(Vec::new())
+            }
         }
     }
 

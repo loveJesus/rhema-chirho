@@ -14,6 +14,8 @@ use tantivy::query::{
 use tantivy::schema::Value;
 use tantivy::{Index, Term};
 
+use rhema_contracts_chirho::morphology_chirho::MorphConstraintChirho;
+
 use crate::error_chirho::IndexErrorChirho;
 use crate::schema_chirho::RhemaSchemaChirho;
 
@@ -216,6 +218,109 @@ impl IndexSearcherChirho {
         self.collect_hits_chirho(&searcher_chirho, &top_docs_chirho)
     }
 
+    /// Search by morphology constraint — builds a BooleanQuery from facet fields.
+    pub fn search_morph_chirho(
+        &self,
+        constraint_chirho: &MorphConstraintChirho,
+        max_results_chirho: usize,
+    ) -> Result<Vec<IndexHitChirho>, IndexErrorChirho> {
+        let reader_chirho = self.index_chirho.reader()?;
+        let searcher_chirho = reader_chirho.searcher();
+
+        let mut sub_queries_chirho: Vec<(Occur, Box<dyn tantivy::query::Query>)> = Vec::new();
+
+        if let Some(ref pos_chirho) = constraint_chirho.part_of_speech_chirho {
+            let term_chirho = Term::from_field_text(
+                self.schema_chirho.pos_field_chirho,
+                &format!("{pos_chirho:?}"),
+            );
+            sub_queries_chirho.push((
+                Occur::Must,
+                Box::new(TermQuery::new(term_chirho, tantivy::schema::IndexRecordOption::Basic)),
+            ));
+        }
+        if let Some(ref tense_chirho) = constraint_chirho.tense_chirho {
+            let term_chirho = Term::from_field_text(
+                self.schema_chirho.tense_field_chirho,
+                &format!("{tense_chirho:?}"),
+            );
+            sub_queries_chirho.push((
+                Occur::Must,
+                Box::new(TermQuery::new(term_chirho, tantivy::schema::IndexRecordOption::Basic)),
+            ));
+        }
+        if let Some(ref voice_chirho) = constraint_chirho.voice_chirho {
+            let term_chirho = Term::from_field_text(
+                self.schema_chirho.voice_field_chirho,
+                &format!("{voice_chirho:?}"),
+            );
+            sub_queries_chirho.push((
+                Occur::Must,
+                Box::new(TermQuery::new(term_chirho, tantivy::schema::IndexRecordOption::Basic)),
+            ));
+        }
+        if let Some(ref mood_chirho) = constraint_chirho.mood_chirho {
+            let term_chirho = Term::from_field_text(
+                self.schema_chirho.mood_field_chirho,
+                &format!("{mood_chirho:?}"),
+            );
+            sub_queries_chirho.push((
+                Occur::Must,
+                Box::new(TermQuery::new(term_chirho, tantivy::schema::IndexRecordOption::Basic)),
+            ));
+        }
+        if let Some(ref case_chirho) = constraint_chirho.case_chirho {
+            let term_chirho = Term::from_field_text(
+                self.schema_chirho.case_field_chirho,
+                &format!("{case_chirho:?}"),
+            );
+            sub_queries_chirho.push((
+                Occur::Must,
+                Box::new(TermQuery::new(term_chirho, tantivy::schema::IndexRecordOption::Basic)),
+            ));
+        }
+        if let Some(ref number_chirho) = constraint_chirho.number_chirho {
+            let term_chirho = Term::from_field_text(
+                self.schema_chirho.number_field_chirho,
+                &format!("{number_chirho:?}"),
+            );
+            sub_queries_chirho.push((
+                Occur::Must,
+                Box::new(TermQuery::new(term_chirho, tantivy::schema::IndexRecordOption::Basic)),
+            ));
+        }
+        if let Some(ref gender_chirho) = constraint_chirho.gender_chirho {
+            let term_chirho = Term::from_field_text(
+                self.schema_chirho.gender_field_chirho,
+                &format!("{gender_chirho:?}"),
+            );
+            sub_queries_chirho.push((
+                Occur::Must,
+                Box::new(TermQuery::new(term_chirho, tantivy::schema::IndexRecordOption::Basic)),
+            ));
+        }
+        if let Some(ref person_chirho) = constraint_chirho.person_chirho {
+            let term_chirho = Term::from_field_text(
+                self.schema_chirho.person_field_chirho,
+                &format!("{person_chirho:?}"),
+            );
+            sub_queries_chirho.push((
+                Occur::Must,
+                Box::new(TermQuery::new(term_chirho, tantivy::schema::IndexRecordOption::Basic)),
+            ));
+        }
+
+        if sub_queries_chirho.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let combined_chirho = BooleanQuery::new(sub_queries_chirho);
+        let top_docs_chirho =
+            searcher_chirho.search(&combined_chirho, &TopDocs::with_limit(max_results_chirho))?;
+
+        self.collect_hits_chirho(&searcher_chirho, &top_docs_chirho)
+    }
+
     /// Collect Tantivy search results into `IndexHitChirho` structs.
     fn collect_hits_chirho(
         &self,
@@ -289,16 +394,16 @@ mod tests_chirho {
             Index::create_in_dir(dir_chirho, schema_chirho.schema_chirho.clone()).unwrap();
         let mut writer_chirho: IndexWriter = index_chirho.writer(15_000_000).unwrap();
 
-        // Add test verses
-        let verses_chirho = vec![
-            ("John", 3u64, 16u64, "For God so loved the world that he gave his only begotten Son that whosoever believeth in him should not perish but have everlasting life", "KJV"),
-            ("John", 3, 17, "For God sent not his Son into the world to condemn the world but that the world through him might be saved", "KJV"),
-            ("Romans", 8, 28, "And we know that all things work together for good to them that love God to them who are the called according to his purpose", "KJV"),
-            ("Genesis", 1, 1, "In the beginning God created the heaven and the earth", "KJV"),
-            ("Psalms", 23, 1, "The LORD is my shepherd I shall not want", "KJV"),
+        // Add test verses with morph data
+        let verses_chirho: Vec<(&str, u64, u64, &str, &str, Option<&str>, Option<&str>)> = vec![
+            ("John", 3, 16, "For God so loved the world that he gave his only begotten Son that whosoever believeth in him should not perish but have everlasting life", "KJV", Some("VerbChirho"), Some("AoristChirho")),
+            ("John", 3, 17, "For God sent not his Son into the world to condemn the world but that the world through him might be saved", "KJV", Some("VerbChirho"), Some("AoristChirho")),
+            ("Romans", 8, 28, "And we know that all things work together for good to them that love God to them who are the called according to his purpose", "KJV", Some("VerbChirho"), Some("PresentChirho")),
+            ("Genesis", 1, 1, "In the beginning God created the heaven and the earth", "KJV", Some("NounChirho"), None),
+            ("Psalms", 23, 1, "The LORD is my shepherd I shall not want", "KJV", None, None),
         ];
 
-        for (book_chirho, ch_chirho, v_chirho, text_chirho, module_chirho) in &verses_chirho {
+        for (book_chirho, ch_chirho, v_chirho, text_chirho, module_chirho, pos_chirho, tense_chirho) in &verses_chirho {
             let key_chirho = format!("{} {}:{}", book_chirho, ch_chirho, v_chirho);
             let mut doc_chirho = TantivyDocument::default();
             doc_chirho.add_text(schema_chirho.key_field_chirho, &key_chirho);
@@ -307,6 +412,12 @@ mod tests_chirho {
             doc_chirho.add_u64(schema_chirho.verse_field_chirho, *v_chirho);
             doc_chirho.add_text(schema_chirho.text_field_chirho, *text_chirho);
             doc_chirho.add_text(schema_chirho.module_field_chirho, *module_chirho);
+            if let Some(pos_val_chirho) = pos_chirho {
+                doc_chirho.add_text(schema_chirho.pos_field_chirho, *pos_val_chirho);
+            }
+            if let Some(tense_val_chirho) = tense_chirho {
+                doc_chirho.add_text(schema_chirho.tense_field_chirho, *tense_val_chirho);
+            }
             writer_chirho.add_document(doc_chirho).unwrap();
         }
         writer_chirho.commit().unwrap();
@@ -400,5 +511,78 @@ mod tests_chirho {
         // "God" appears in multiple verses
         let hits_chirho = searcher_chirho.search_text_chirho("God", 2).unwrap();
         assert!(hits_chirho.len() <= 2);
+    }
+
+    // ── Phase 3: Morph search tests ──────────────────────────────
+
+    #[test]
+    fn test_search_morph_by_pos_chirho() {
+        use rhema_contracts_chirho::morphology_chirho::PartOfSpeechChirho;
+
+        let dir_chirho = tempfile::tempdir().unwrap();
+        let searcher_chirho = build_test_index_chirho(dir_chirho.path());
+
+        let constraint_chirho = MorphConstraintChirho {
+            part_of_speech_chirho: Some(PartOfSpeechChirho::VerbChirho),
+            ..Default::default()
+        };
+        let hits_chirho = searcher_chirho.search_morph_chirho(&constraint_chirho, 100).unwrap();
+        assert_eq!(hits_chirho.len(), 3); // John 3:16, 3:17, Romans 8:28
+    }
+
+    #[test]
+    fn test_search_morph_by_pos_and_tense_chirho() {
+        use rhema_contracts_chirho::morphology_chirho::{PartOfSpeechChirho, TenseChirho};
+
+        let dir_chirho = tempfile::tempdir().unwrap();
+        let searcher_chirho = build_test_index_chirho(dir_chirho.path());
+
+        let constraint_chirho = MorphConstraintChirho {
+            part_of_speech_chirho: Some(PartOfSpeechChirho::VerbChirho),
+            tense_chirho: Some(TenseChirho::AoristChirho),
+            ..Default::default()
+        };
+        let hits_chirho = searcher_chirho.search_morph_chirho(&constraint_chirho, 100).unwrap();
+        assert_eq!(hits_chirho.len(), 2); // John 3:16, 3:17
+    }
+
+    #[test]
+    fn test_search_morph_no_match_chirho() {
+        use rhema_contracts_chirho::morphology_chirho::PartOfSpeechChirho;
+
+        let dir_chirho = tempfile::tempdir().unwrap();
+        let searcher_chirho = build_test_index_chirho(dir_chirho.path());
+
+        let constraint_chirho = MorphConstraintChirho {
+            part_of_speech_chirho: Some(PartOfSpeechChirho::AdverbChirho),
+            ..Default::default()
+        };
+        let hits_chirho = searcher_chirho.search_morph_chirho(&constraint_chirho, 100).unwrap();
+        assert!(hits_chirho.is_empty());
+    }
+
+    #[test]
+    fn test_search_morph_empty_constraint_chirho() {
+        let dir_chirho = tempfile::tempdir().unwrap();
+        let searcher_chirho = build_test_index_chirho(dir_chirho.path());
+
+        let constraint_chirho = MorphConstraintChirho::default();
+        let hits_chirho = searcher_chirho.search_morph_chirho(&constraint_chirho, 100).unwrap();
+        assert!(hits_chirho.is_empty());
+    }
+
+    #[test]
+    fn test_search_morph_noun_chirho() {
+        use rhema_contracts_chirho::morphology_chirho::PartOfSpeechChirho;
+
+        let dir_chirho = tempfile::tempdir().unwrap();
+        let searcher_chirho = build_test_index_chirho(dir_chirho.path());
+
+        let constraint_chirho = MorphConstraintChirho {
+            part_of_speech_chirho: Some(PartOfSpeechChirho::NounChirho),
+            ..Default::default()
+        };
+        let hits_chirho = searcher_chirho.search_morph_chirho(&constraint_chirho, 100).unwrap();
+        assert_eq!(hits_chirho.len(), 1); // Genesis 1:1
     }
 }

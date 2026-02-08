@@ -7,6 +7,7 @@
 //! The planner analyzes the query IR, selects the best backend(s), and
 //! produces an execution plan that the executor can run.
 
+use rhema_contracts_chirho::morphology_chirho::MorphConstraintChirho;
 use rhema_contracts_chirho::query_chirho::{QueryChirho, QueryNodeChirho};
 
 /// An execution plan step.
@@ -70,6 +71,11 @@ pub enum PlanStepChirho {
     /// Search discourse store by proposition text.
     PropositionTextSearchChirho {
         text_chirho: String,
+    },
+
+    /// Phase 3: Morphology lookup against Tantivy facet fields.
+    MorphLookupChirho {
+        constraint_chirho: MorphConstraintChirho,
     },
 }
 
@@ -153,11 +159,9 @@ fn plan_node_chirho(node_chirho: &QueryNodeChirho) -> PlanStepChirho {
             lemma_chirho: lemma_chirho.clone(),
         },
 
-        QueryNodeChirho::MorphChirho(_constraint_chirho) => {
-            // TODO(phase-c): Morph index lookup
-            PlanStepChirho::FullTextSearchChirho {
-                backend_chirho: "morph_index".to_string(),
-                query_text_chirho: "morph_constraint".to_string(),
+        QueryNodeChirho::MorphChirho(constraint_chirho) => {
+            PlanStepChirho::MorphLookupChirho {
+                constraint_chirho: constraint_chirho.clone(),
             }
         }
 
@@ -255,6 +259,7 @@ fn estimate_cost_chirho(step_chirho: &PlanStepChirho) -> f64 {
         PlanStepChirho::ConceptSearchChirho { .. } => 4.0,
         PlanStepChirho::DiscourseRelationshipSearchChirho { .. } => 0.5,
         PlanStepChirho::PropositionTextSearchChirho { .. } => 0.5,
+        PlanStepChirho::MorphLookupChirho { .. } => 0.7,
     }
 }
 
@@ -312,5 +317,25 @@ mod tests_chirho {
 
         assert!(explain_chirho.contains("Backend: cpu"));
         assert!(explain_chirho.contains("Estimated cost"));
+    }
+
+    #[test]
+    fn test_plan_morph_lookup_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("morph:V-AAI-3S").unwrap();
+        let plan_chirho = QueryPlannerChirho::plan_chirho(&query_chirho);
+
+        match &plan_chirho.root_step_chirho {
+            PlanStepChirho::MorphLookupChirho { constraint_chirho } => {
+                assert!(constraint_chirho.part_of_speech_chirho.is_some());
+            }
+            other_chirho => panic!("Expected MorphLookupChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_plan_morph_cost_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("pos:verb").unwrap();
+        let plan_chirho = QueryPlannerChirho::plan_chirho(&query_chirho);
+        assert!((plan_chirho.estimated_cost_chirho - 0.7).abs() < 0.01);
     }
 }

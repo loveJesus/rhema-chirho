@@ -45,7 +45,7 @@ User Query → parser_chirho → QueryNodeChirho (IR) → planner_chirho → Pla
 
 Shared type-level contracts, newtypes, DTOs, and trait definitions
 
-**Modules:** ids_chirho, keys_chirho, query_chirho, corpus_chirho, morphology_chirho, result_chirho, error_chirho, capability_chirho
+**Modules:** ids_chirho, keys_chirho, query_chirho, corpus_chirho, morphology_chirho, morph_parser_chirho, result_chirho, error_chirho, capability_chirho
 
 **Capabilities:**
 
@@ -89,7 +89,7 @@ Full-text indexing engine: Tantivy schema, indexer, searcher, manifest versionin
 - [x] Strong's Number Search
 - [x] Book-scoped Search
 - [x] Manifest Versioning
-- [ ] Morphology Index Fields (morph, lemma, pos)
+- [x] Morphology Index Fields (morph, lemma, pos, tense, voice, mood, case, number, gender, person)
 - [ ] Semantic Domain Index Fields (sense, domain)
 - [ ] Cross-Reference Graph Index
 
@@ -109,11 +109,11 @@ Query parser, IR, and planner: text queries → QueryNodeChirho → PlanStepChir
 - [x] Proximity (NEAR/N)
 - [x] Scope Filtering ([Book], [OT], [NT])
 - [x] Implicit AND (multi-word)
-- [ ] Morphology Query Syntax (morph:, pos:, tense:)
+- [x] Morphology Query Syntax (morph:, pos:, tense:, voice:, mood:, case:, number:, gender:, person:)
 - [ ] Semantic Domain Syntax (domain:, sense:)
 - [ ] Cross-Reference Syntax (xref:, XREF/N)
 - [x] Query Plan Optimization
-- [-] Morph Plan Step
+- [x] Morph Plan Step
 - [-] GraphExpand Plan Step
 
 #### `rhema_exec_chirho`
@@ -131,10 +131,24 @@ Query execution runtime: dispatches planned queries against Tantivy and regex ba
 - [x] OR Union Execution
 - [x] NOT Exclusion Execution
 - [x] Proximity Execution
-- [ ] Morphology Execution
+- [x] Morphology Execution
 - [ ] Semantic Domain Execution
 - [ ] Cross-Reference Graph Execution
 - [ ] Saved Searches Persistence
+
+#### `rhema_module_chirho`
+
+SQLite-based module format: self-contained .rhema files with verses, tokens, morphology, and metadata
+
+**Modules:** schema_chirho, writer_chirho, reader_chirho, morph_query_chirho, converter_chirho, error_chirho
+
+**Capabilities:**
+
+- [x] SQLite Module Schema (verses, tokens, metadata)
+- [x] Module Writer (build .rhema from ingest data)
+- [x] Module Reader (query verses, tokens, morphology)
+- [x] Morphology Query via SQL WHERE
+- [x] SWORD → .rhema Converter
 
 ### Integration Layer
 

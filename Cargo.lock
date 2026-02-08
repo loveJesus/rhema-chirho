@@ -1927,6 +1927,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "rhema_module_chirho"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "rhema_contracts_chirho",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+]
+
+[[package]]
 name = "rhema_query_chirho"
 version = "0.1.0"
 dependencies = [
