@@ -1,0 +1,34 @@
+# For God so loved the world that he gave his only begotten Son,
+# that whoever believes in him should not perish but have eternal life.
+# John 3:16
+
+[package]
+name = "rhema_cli_chirho"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "CLI tools: diatheke, REPL, TUI, morph search, etc."
+
+[dependencies]
+rhema_contracts_chirho.workspace = true
+rhema_core_chirho.workspace = true
+rhema_integration_chirho.workspace = true
+rhema_query_chirho.workspace = true
+rhema_exec_chirho.workspace = true
+rhema_index_chirho.workspace = true
+rhema_ingest_chirho.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+log.workspace = true
+clap.workspace = true
+serde_json.workspace = true
+env_logger = "0.11"
+
+[[bin]]
+name = "rhema_chirho"
+path = "src/main_chirho.rs"
+
+[lints]
+workspace = true

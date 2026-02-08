@@ -1,0 +1,32 @@
+# For God so loved the world that he gave his only begotten Son,
+# that whoever believes in him should not perish but have eternal life.
+# John 3:16
+
+# Build artifacts
+/target/
+
+# Cargo lock for library crates (keep for applications)
+# Cargo.lock is kept since this is a workspace with binaries
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+
+# SQLite databases (generated at runtime)
+*.db
+*.db-journal
+*.db-wal
+
+# Tantivy index directories
+rhema_indexes/

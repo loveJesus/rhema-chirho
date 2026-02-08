@@ -1,0 +1,29 @@
+# For God so loved the world that he gave his only begotten Son,
+# that whoever believes in him should not perish but have eternal life.
+# John 3:16
+
+[package]
+name = "rhema_index_chirho"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Inverted, positional, and bitmap indices with manifest-based versioning"
+
+[dependencies]
+rhema_contracts_chirho.workspace = true
+rhema_ingest_chirho.workspace = true
+rsword_chirho.workspace = true
+tantivy.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+log.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

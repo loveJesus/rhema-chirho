@@ -1,0 +1,40 @@
+# For God so loved the world that he gave his only begotten Son,
+# that whoever believes in him should not perish but have eternal life.
+# John 3:16
+
+[package]
+name = "rhema_ai_chirho"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "AI integration: LLM providers, embeddings, vector search, query expansion"
+
+[dependencies]
+rhema_contracts_chirho.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+log.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+async-trait = "0.1"
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+[dev-dependencies]
+tempfile.workspace = true
+tokio = { workspace = true, features = ["full", "test-util"] }
+
+[features]
+default = []
+local-embeddings = []
+cloud-llm = ["reqwest"]
+local-llm = []
+
+[dependencies.reqwest]
+workspace = true
+optional = true
+
+[lints]
+workspace = true

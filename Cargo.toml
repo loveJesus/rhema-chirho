@@ -1,0 +1,118 @@
+# For God so loved the world that he gave his only begotten Son,
+# that whoever believes in him should not perish but have eternal life.
+# John 3:16
+
+[workspace]
+resolver = "2"
+members = [
+    # Core (Phase A - must ship)
+    "crates/rhema_contracts_chirho",
+    "crates/rhema_core_chirho",
+    "crates/rhema_ingest_chirho",
+    "crates/rhema_index_chirho",
+    "crates/rhema_query_chirho",
+    "crates/rhema_exec_chirho",
+
+    # Integration surfaces (Phase B+)
+    "crates/rhema_integration_chirho",
+    "crates/rhema_gui_chirho",
+    "crates/rhema_api_chirho",
+    "crates/rhema_ai_chirho",
+    "crates/rhema_cli_chirho",
+    "crates/rhema_ffi_chirho",
+    "crates/rhema_wasm_chirho",
+
+    # Discourse analysis (Phase 2)
+    "crates/rhema_discourse_chirho",
+
+    # Acceleration (Research track)
+    "crates/rhema_accel_chirho",
+
+    # Quality
+    "crates/rhema_testkit_chirho",
+    "crates/rhema_bench_chirho",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+authors = ["rsword-chirho contributors"]
+license = "GPL-2.0-or-later"
+repository = "https://github.com/loveJesus/rsword-chirho"
+description = "Rhema Chirho — Biblical scholarship engine in Pure Rust"
+keywords = ["bible", "scripture", "study", "search", "engine"]
+categories = ["text-processing"]
+
+[workspace.dependencies]
+# Error handling
+thiserror = "2.0"
+anyhow = "1.0"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Logging
+log = "0.4"
+
+# Search
+tantivy = "0.25"
+regex = "1.11"
+
+# Compression
+flate2 = "1.0"
+bzip2 = "0.5"
+xz2 = "0.1"
+
+# XML parsing
+quick-xml = "0.37"
+
+# Character encoding
+encoding_rs = "0.8"
+
+# Flags and bitfields
+bitflags = "2.6"
+
+# Parallelization
+rayon = "1.10"
+
+# HTTP/networking
+reqwest = { version = "0.12", features = ["blocking", "stream"] }
+tokio = { version = "1.43", features = ["full"] }
+
+# CLI
+clap = { version = "4.5", features = ["derive", "wrap_help"] }
+
+# Caching
+lru = "0.12"
+
+# Testing
+tempfile = "3.14"
+
+# SWORD compatibility
+rsword_chirho = { version = "0.3.0" }
+
+# Internal crates
+rhema_contracts_chirho = { version = "0.1.0", path = "crates/rhema_contracts_chirho" }
+rhema_core_chirho = { version = "0.1.0", path = "crates/rhema_core_chirho" }
+rhema_ingest_chirho = { version = "0.1.0", path = "crates/rhema_ingest_chirho" }
+rhema_index_chirho = { version = "0.1.0", path = "crates/rhema_index_chirho" }
+rhema_query_chirho = { version = "0.1.0", path = "crates/rhema_query_chirho" }
+rhema_exec_chirho = { version = "0.1.0", path = "crates/rhema_exec_chirho" }
+rhema_integration_chirho = { version = "0.1.0", path = "crates/rhema_integration_chirho" }
+rhema_testkit_chirho = { version = "0.1.0", path = "crates/rhema_testkit_chirho" }
+rhema_accel_chirho = { version = "0.1.0", path = "crates/rhema_accel_chirho" }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+
+[profile.release-fast-chirho]
+inherits = "release"
+opt-level = 2
+lto = false
+strip = true
+incremental = true
+codegen-units = 16
