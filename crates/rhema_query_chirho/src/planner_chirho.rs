@@ -77,6 +77,27 @@ pub enum PlanStepChirho {
     MorphLookupChirho {
         constraint_chirho: MorphConstraintChirho,
     },
+
+    /// Phase 4: Cross-reference graph expansion via BFS.
+    GraphSearchChirho {
+        seed_chirho: String,
+        depth_chirho: u32,
+    },
+
+    /// Phase 5+: Semantic domain lookup.
+    DomainLookupChirho {
+        domain_chirho: String,
+    },
+
+    /// Phase 5+: Word sense lookup.
+    SenseLookupChirho {
+        sense_chirho: String,
+    },
+
+    /// Phase 5+: Syntax/clause search.
+    SyntaxSearchChirho {
+        clause_type_chirho: String,
+    },
 }
 
 /// The complete execution plan.
@@ -173,13 +194,10 @@ fn plan_node_chirho(node_chirho: &QueryNodeChirho) -> PlanStepChirho {
         QueryNodeChirho::GraphExpandChirho {
             seed_chirho,
             depth_chirho,
-        } => {
-            // TODO(phase-c): Cross-reference graph expansion
-            PlanStepChirho::FullTextSearchChirho {
-                backend_chirho: "graph".to_string(),
-                query_text_chirho: format!("expand({}, depth={})", seed_chirho, depth_chirho),
-            }
-        }
+        } => PlanStepChirho::GraphSearchChirho {
+            seed_chirho: seed_chirho.clone(),
+            depth_chirho: *depth_chirho,
+        },
 
         // ── Phase 2: AI / Semantic nodes ────────────────────────────
 
@@ -232,6 +250,22 @@ fn plan_node_chirho(node_chirho: &QueryNodeChirho) -> PlanStepChirho {
         } => PlanStepChirho::PropositionTextSearchChirho {
             text_chirho: text_chirho.clone(),
         },
+
+        // ── Phase 5+: Domain, Sense, Syntax nodes ──────────────────
+
+        QueryNodeChirho::DomainChirho { domain_chirho } => PlanStepChirho::DomainLookupChirho {
+            domain_chirho: domain_chirho.clone(),
+        },
+
+        QueryNodeChirho::SenseChirho { sense_chirho } => PlanStepChirho::SenseLookupChirho {
+            sense_chirho: sense_chirho.clone(),
+        },
+
+        QueryNodeChirho::SyntaxChirho {
+            clause_type_chirho, ..
+        } => PlanStepChirho::SyntaxSearchChirho {
+            clause_type_chirho: clause_type_chirho.clone(),
+        },
     }
 }
 
@@ -260,6 +294,10 @@ fn estimate_cost_chirho(step_chirho: &PlanStepChirho) -> f64 {
         PlanStepChirho::DiscourseRelationshipSearchChirho { .. } => 0.5,
         PlanStepChirho::PropositionTextSearchChirho { .. } => 0.5,
         PlanStepChirho::MorphLookupChirho { .. } => 0.7,
+        PlanStepChirho::GraphSearchChirho { depth_chirho, .. } => 1.0 + *depth_chirho as f64 * 0.5,
+        PlanStepChirho::DomainLookupChirho { .. } => 0.6,
+        PlanStepChirho::SenseLookupChirho { .. } => 0.6,
+        PlanStepChirho::SyntaxSearchChirho { .. } => 0.8,
     }
 }
 
@@ -337,5 +375,75 @@ mod tests_chirho {
         let query_chirho = QueryParserChirho::parse_chirho("pos:verb").unwrap();
         let plan_chirho = QueryPlannerChirho::plan_chirho(&query_chirho);
         assert!((plan_chirho.estimated_cost_chirho - 0.7).abs() < 0.01);
+    }
+
+    // ── Phase 4: Graph search plan tests ────────────────────────
+
+    #[test]
+    fn test_plan_graph_search_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("xref:John.3.16").unwrap();
+        let plan_chirho = QueryPlannerChirho::plan_chirho(&query_chirho);
+
+        match &plan_chirho.root_step_chirho {
+            PlanStepChirho::GraphSearchChirho {
+                seed_chirho,
+                depth_chirho,
+            } => {
+                assert_eq!(seed_chirho, "John.3.16");
+                assert_eq!(*depth_chirho, 1);
+            }
+            other_chirho => panic!("Expected GraphSearchChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_plan_domain_lookup_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("domain:love").unwrap();
+        let plan_chirho = QueryPlannerChirho::plan_chirho(&query_chirho);
+        match &plan_chirho.root_step_chirho {
+            PlanStepChirho::DomainLookupChirho { domain_chirho } => {
+                assert_eq!(domain_chirho, "love");
+            }
+            other_chirho => panic!("Expected DomainLookupChirho, got {:?}", other_chirho),
+        }
+        assert!((plan_chirho.estimated_cost_chirho - 0.6).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_plan_sense_lookup_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("sense:love.01").unwrap();
+        let plan_chirho = QueryPlannerChirho::plan_chirho(&query_chirho);
+        match &plan_chirho.root_step_chirho {
+            PlanStepChirho::SenseLookupChirho { sense_chirho } => {
+                assert_eq!(sense_chirho, "love.01");
+            }
+            other_chirho => panic!("Expected SenseLookupChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_plan_syntax_search_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("syntax:relative").unwrap();
+        let plan_chirho = QueryPlannerChirho::plan_chirho(&query_chirho);
+        match &plan_chirho.root_step_chirho {
+            PlanStepChirho::SyntaxSearchChirho { clause_type_chirho } => {
+                assert_eq!(clause_type_chirho, "relative");
+            }
+            other_chirho => panic!("Expected SyntaxSearchChirho, got {:?}", other_chirho),
+        }
+        assert!((plan_chirho.estimated_cost_chirho - 0.8).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_plan_graph_search_cost_chirho() {
+        // Depth 1: cost = 1.0 + 1*0.5 = 1.5
+        let query_chirho = QueryParserChirho::parse_chirho("xref:John.3.16").unwrap();
+        let plan_chirho = QueryPlannerChirho::plan_chirho(&query_chirho);
+        assert!((plan_chirho.estimated_cost_chirho - 1.5).abs() < 0.01);
+
+        // Depth 3: cost = 1.0 + 3*0.5 = 2.5
+        let query2_chirho = QueryParserChirho::parse_chirho("XREF/3 John 3:16").unwrap();
+        let plan2_chirho = QueryPlannerChirho::plan_chirho(&query2_chirho);
+        assert!((plan2_chirho.estimated_cost_chirho - 2.5).abs() < 0.01);
     }
 }

@@ -10,6 +10,9 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "FPGA acceleration: packed hierarchical bit-domain engine (Chi-Rho patent)"
+readme = "../../README.md"
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
 rhema_contracts_chirho.workspace = true
@@ -17,5 +20,8 @@ thiserror.workspace = true
 anyhow.workspace = true
 log.workspace = true
 
-[lints]
-workspace = true
+[lints.rust]
+unsafe_code = "allow"
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }

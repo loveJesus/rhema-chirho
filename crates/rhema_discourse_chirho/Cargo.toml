@@ -10,6 +10,9 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Discourse analysis: arcing, bracketing, phrasing for biblical scholarship"
+readme = "../../README.md"
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
 rhema_contracts_chirho.workspace = true

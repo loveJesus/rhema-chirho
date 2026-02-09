@@ -127,6 +127,11 @@ fn parse_expression_chirho(input_chirho: &str) -> Result<QueryNodeChirho, QueryE
         return Ok(QueryNodeChirho::NotChirho(Box::new(inner_chirho)));
     }
 
+    // Check for XREF/N graph expansion: `XREF/2 John 3:16`
+    if let Some(xref_chirho) = try_parse_xref_operator_chirho(input_chirho)? {
+        return Ok(xref_chirho);
+    }
+
     // Check for NEAR/N proximity
     if let Some(prox_chirho) = try_parse_proximity_chirho(input_chirho)? {
         return Ok(prox_chirho);
@@ -170,6 +175,32 @@ fn parse_expression_chirho(input_chirho: &str) -> Result<QueryNodeChirho, QueryE
     })
 }
 
+/// Try to parse an XREF/N operator like `XREF/2 John 3:16`.
+fn try_parse_xref_operator_chirho(
+    input_chirho: &str,
+) -> Result<Option<QueryNodeChirho>, QueryErrorChirho> {
+    let xref_re_chirho = regex::Regex::new(r"(?i)^XREF/(\d+)\s+(.+)$").unwrap();
+
+    if let Some(captures_chirho) = xref_re_chirho.captures(input_chirho) {
+        let depth_chirho: u32 = captures_chirho
+            .get(1)
+            .unwrap()
+            .as_str()
+            .parse()
+            .map_err(|_| QueryErrorChirho::InvalidXrefChirho {
+                value_chirho: captures_chirho.get(1).unwrap().as_str().to_string(),
+            })?;
+        let seed_chirho = captures_chirho.get(2).unwrap().as_str().trim().to_string();
+
+        return Ok(Some(QueryNodeChirho::GraphExpandChirho {
+            seed_chirho,
+            depth_chirho,
+        }));
+    }
+
+    Ok(None)
+}
+
 /// Try to parse a proximity expression like `love NEAR/5 world`.
 fn try_parse_proximity_chirho(
     input_chirho: &str,
@@ -188,9 +219,7 @@ fn try_parse_proximity_chirho(
             })?;
         let right_chirho = captures_chirho.get(3).unwrap().as_str().trim();
 
-        let mut terms_chirho = Vec::new();
-        terms_chirho.push(left_chirho.to_string());
-        terms_chirho.push(right_chirho.to_string());
+        let terms_chirho = vec![left_chirho.to_string(), right_chirho.to_string()];
 
         return Ok(Some(QueryNodeChirho::ProximityChirho {
             terms_chirho,
@@ -255,6 +284,14 @@ fn try_parse_prefix_chirho(
         }));
     }
 
+    // Phase 4: Cross-reference graph search — `xref:John.3.16` or `xref:John 3:16`
+    if let Some(value_chirho) = input_chirho.strip_prefix("xref:") {
+        return Ok(Some(QueryNodeChirho::GraphExpandChirho {
+            seed_chirho: value_chirho.to_string(),
+            depth_chirho: 1,
+        }));
+    }
+
     // Phase 2: Discourse relationship search — `rel:Ground`
     if let Some(value_chirho) = input_chirho.strip_prefix("rel:") {
         return Ok(Some(QueryNodeChirho::DiscourseRelationshipChirho {
@@ -268,6 +305,35 @@ fn try_parse_prefix_chirho(
         let clean_chirho = value_chirho.trim_matches('"');
         return Ok(Some(QueryNodeChirho::PropositionTextChirho {
             text_chirho: clean_chirho.to_string(),
+            scope_chirho: None,
+        }));
+    }
+
+    // Phase 5+: Semantic domain search — `domain:love`
+    if let Some(value_chirho) = input_chirho.strip_prefix("domain:") {
+        return Ok(Some(QueryNodeChirho::DomainChirho {
+            domain_chirho: value_chirho.to_string(),
+        }));
+    }
+
+    // Phase 5+: Sense search — `sense:love.01`
+    if let Some(value_chirho) = input_chirho.strip_prefix("sense:") {
+        return Ok(Some(QueryNodeChirho::SenseChirho {
+            sense_chirho: value_chirho.to_string(),
+        }));
+    }
+
+    // Phase 5+: Syntax/clause search — `syntax:relative` or `clause:conditional`
+    if let Some(value_chirho) = input_chirho.strip_prefix("syntax:") {
+        return Ok(Some(QueryNodeChirho::SyntaxChirho {
+            clause_type_chirho: value_chirho.to_string(),
+            scope_chirho: None,
+        }));
+    }
+
+    if let Some(value_chirho) = input_chirho.strip_prefix("clause:") {
+        return Ok(Some(QueryNodeChirho::SyntaxChirho {
+            clause_type_chirho: value_chirho.to_string(),
             scope_chirho: None,
         }));
     }
@@ -857,6 +923,68 @@ mod tests_chirho {
         }
     }
 
+    // ── Phase 5+: Domain / Sense / Syntax prefix tests ──────────
+
+    #[test]
+    fn test_domain_prefix_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("domain:love").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::DomainChirho { domain_chirho } => {
+                assert_eq!(domain_chirho, "love");
+            }
+            other_chirho => panic!("Expected DomainChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_sense_prefix_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("sense:love.01").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::SenseChirho { sense_chirho } => {
+                assert_eq!(sense_chirho, "love.01");
+            }
+            other_chirho => panic!("Expected SenseChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_syntax_prefix_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("syntax:relative").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::SyntaxChirho {
+                clause_type_chirho, ..
+            } => {
+                assert_eq!(clause_type_chirho, "relative");
+            }
+            other_chirho => panic!("Expected SyntaxChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_clause_prefix_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("clause:conditional").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::SyntaxChirho {
+                clause_type_chirho, ..
+            } => {
+                assert_eq!(clause_type_chirho, "conditional");
+            }
+            other_chirho => panic!("Expected SyntaxChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_domain_with_and_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("domain:love AND love").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::AndChirho(children_chirho) => {
+                assert_eq!(children_chirho.len(), 2);
+                assert!(matches!(children_chirho[0], QueryNodeChirho::DomainChirho { .. }));
+            }
+            other_chirho => panic!("Expected AndChirho, got {:?}", other_chirho),
+        }
+    }
+
     // ── Phase 3: Morphology prefix tests ─────────────────────────
 
     #[test]
@@ -1043,6 +1171,68 @@ mod tests_chirho {
                 );
             }
             other_chirho => panic!("Expected MorphChirho, got {:?}", other_chirho),
+        }
+    }
+
+    // ── Phase 4: Cross-reference prefix tests ───────────────────
+
+    #[test]
+    fn test_xref_prefix_osis_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("xref:John.3.16").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::GraphExpandChirho {
+                seed_chirho,
+                depth_chirho,
+            } => {
+                assert_eq!(seed_chirho, "John.3.16");
+                assert_eq!(*depth_chirho, 1);
+            }
+            other_chirho => panic!("Expected GraphExpandChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_xref_prefix_human_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("xref:John 3:16").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::GraphExpandChirho {
+                seed_chirho,
+                depth_chirho,
+            } => {
+                assert_eq!(seed_chirho, "John 3:16");
+                assert_eq!(*depth_chirho, 1);
+            }
+            other_chirho => panic!("Expected GraphExpandChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_xref_operator_depth_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("XREF/2 John 3:16").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::GraphExpandChirho {
+                seed_chirho,
+                depth_chirho,
+            } => {
+                assert_eq!(seed_chirho, "John 3:16");
+                assert_eq!(*depth_chirho, 2);
+            }
+            other_chirho => panic!("Expected GraphExpandChirho, got {:?}", other_chirho),
+        }
+    }
+
+    #[test]
+    fn test_xref_operator_depth_3_chirho() {
+        let query_chirho = QueryParserChirho::parse_chirho("XREF/3 Gen.1.1").unwrap();
+        match &query_chirho.root_chirho {
+            QueryNodeChirho::GraphExpandChirho {
+                seed_chirho,
+                depth_chirho,
+            } => {
+                assert_eq!(seed_chirho, "Gen.1.1");
+                assert_eq!(*depth_chirho, 3);
+            }
+            other_chirho => panic!("Expected GraphExpandChirho, got {:?}", other_chirho),
         }
     }
 }

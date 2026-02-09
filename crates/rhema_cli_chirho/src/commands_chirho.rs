@@ -30,7 +30,7 @@ pub fn cmd_modules_chirho(
         return Ok(());
     }
 
-    println!("{:<20} {:<15} {:<6} {}", "Name", "Type", "Lang", "Description");
+    println!("{:<20} {:<15} {:<6} Description", "Name", "Type", "Lang");
     println!("{}", "-".repeat(70));
 
     for mod_chirho in &modules_chirho {
@@ -242,6 +242,94 @@ pub fn cmd_index_chirho(
     );
 
     Ok(())
+}
+
+/// Save a search to the saved searches store.
+pub fn cmd_save_search_chirho(
+    name_chirho: &str,
+    query_text_chirho: &str,
+) -> anyhow::Result<()> {
+    let store_path_chirho = saved_search_store_path_chirho()?;
+    let store_chirho = rhema_module_chirho::SavedSearchStoreChirho::open_chirho(&store_path_chirho)
+        .map_err(|e_chirho| anyhow::anyhow!("{}", e_chirho))?;
+
+    let saved_chirho = store_chirho
+        .save_chirho(name_chirho, query_text_chirho, "")
+        .map_err(|e_chirho| anyhow::anyhow!("{}", e_chirho))?;
+
+    println!("Saved search '{}' (id: {})", saved_chirho.name_chirho, saved_chirho.id_chirho);
+    Ok(())
+}
+
+/// Load and display a saved search by name.
+pub fn cmd_load_search_chirho(name_chirho: &str) -> anyhow::Result<()> {
+    let store_path_chirho = saved_search_store_path_chirho()?;
+    let store_chirho = rhema_module_chirho::SavedSearchStoreChirho::open_chirho(&store_path_chirho)
+        .map_err(|e_chirho| anyhow::anyhow!("{}", e_chirho))?;
+
+    match store_chirho.load_by_name_chirho(name_chirho) {
+        Ok(search_chirho) => {
+            store_chirho
+                .increment_usage_chirho(&search_chirho.id_chirho)
+                .ok();
+            println!(
+                "Loaded saved search '{}': {}",
+                search_chirho.name_chirho, search_chirho.query_text_chirho,
+            );
+        }
+        Err(e_chirho) => {
+            println!("Saved search '{}' not found: {}", name_chirho, e_chirho);
+        }
+    }
+    Ok(())
+}
+
+/// List all saved searches, optionally filtered by tag.
+pub fn cmd_list_saved_searches_chirho(
+    _list_chirho: bool,
+    tag_chirho: Option<&str>,
+) -> anyhow::Result<()> {
+    let store_path_chirho = saved_search_store_path_chirho()?;
+    let store_chirho = rhema_module_chirho::SavedSearchStoreChirho::open_chirho(&store_path_chirho)
+        .map_err(|e_chirho| anyhow::anyhow!("{}", e_chirho))?;
+
+    let searches_chirho = if let Some(tag_chirho) = tag_chirho {
+        store_chirho
+            .search_by_tag_chirho(tag_chirho)
+            .map_err(|e_chirho| anyhow::anyhow!("{}", e_chirho))?
+    } else {
+        store_chirho
+            .list_chirho()
+            .map_err(|e_chirho| anyhow::anyhow!("{}", e_chirho))?
+    };
+
+    if searches_chirho.is_empty() {
+        println!("No saved searches found.");
+        return Ok(());
+    }
+
+    println!("{:<30} {:<40} {:<6}", "Name", "Query", "Uses");
+    println!("{}", "-".repeat(76));
+    for s_chirho in &searches_chirho {
+        println!(
+            "{:<30} {:<40} {:<6}",
+            truncate_chirho(&s_chirho.name_chirho, 28),
+            truncate_chirho(&s_chirho.query_text_chirho, 38),
+            s_chirho.usage_count_chirho,
+        );
+    }
+    println!("\nTotal: {} saved searches", searches_chirho.len());
+    Ok(())
+}
+
+/// Resolve the saved search store path.
+fn saved_search_store_path_chirho() -> anyhow::Result<String> {
+    let home_chirho = std::env::var("HOME")
+        .map_err(|_| anyhow::anyhow!("HOME not set"))?;
+    let path_chirho = std::path::PathBuf::from(home_chirho)
+        .join(".sword")
+        .join("rhema_saved_searches_chirho.db");
+    Ok(path_chirho.to_string_lossy().to_string())
 }
 
 /// Strip HTML/XML tags for plain text output.

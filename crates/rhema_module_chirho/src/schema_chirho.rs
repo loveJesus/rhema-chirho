@@ -9,17 +9,22 @@ use rusqlite::Connection;
 use crate::error_chirho::ModuleErrorChirho;
 
 /// Current schema version.
-pub const SCHEMA_VERSION_CHIRHO: u32 = 1;
+pub const SCHEMA_VERSION_CHIRHO: u32 = 2;
 
-/// SQL migration script (embedded at compile time).
-const MIGRATION_SQL_CHIRHO: &str =
+/// SQL migration script — initial module schema (embedded at compile time).
+const MIGRATION_001_SQL_CHIRHO: &str =
     include_str!("../migrations_chirho/001_module_schema_chirho.sql");
+
+/// SQL migration script — cross-reference graph schema.
+const MIGRATION_002_SQL_CHIRHO: &str =
+    include_str!("../migrations_chirho/002_xref_schema_chirho.sql");
 
 /// Apply the schema migration to a SQLite connection.
 pub fn apply_schema_chirho(conn_chirho: &Connection) -> Result<(), ModuleErrorChirho> {
     conn_chirho.execute_batch("PRAGMA journal_mode=WAL;")?;
     conn_chirho.execute_batch("PRAGMA foreign_keys=ON;")?;
-    conn_chirho.execute_batch(MIGRATION_SQL_CHIRHO)?;
+    conn_chirho.execute_batch(MIGRATION_001_SQL_CHIRHO)?;
+    conn_chirho.execute_batch(MIGRATION_002_SQL_CHIRHO)?;
 
     // Store schema version in metadata.
     conn_chirho.execute(
@@ -91,6 +96,7 @@ mod tests_chirho {
         assert!(tables_chirho.contains(&"module_meta_chirho".to_string()));
         assert!(tables_chirho.contains(&"verses_chirho".to_string()));
         assert!(tables_chirho.contains(&"tokens_chirho".to_string()));
+        assert!(tables_chirho.contains(&"cross_refs_chirho".to_string()));
     }
 
     #[test]

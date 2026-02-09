@@ -10,6 +10,9 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Stable library integration APIs for GUI/AI/CLI/REST wrappers"
+readme = "../../README.md"
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
 rhema_contracts_chirho.workspace = true

@@ -23,4 +23,10 @@ pub enum ExecErrorChirho {
 
     #[error("SWORD error: {0}")]
     SwordChirho(String),
+
+    #[error("Cross-reference store error: {reason_chirho}")]
+    XrefStoreChirho { reason_chirho: String },
+
+    #[error("Domain store error: {reason_chirho}")]
+    DomainStoreChirho { reason_chirho: String },
 }

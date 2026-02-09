@@ -25,7 +25,7 @@ name_chirho = "rhema_contracts_chirho"
 purpose_chirho = "Shared type-level contracts, newtypes, DTOs, and trait definitions"
 layer_chirho = "core"
 phase_chirho = "A"
-modules_chirho = ["ids_chirho", "keys_chirho", "query_chirho", "corpus_chirho", "morphology_chirho", "morph_parser_chirho", "result_chirho", "error_chirho", "capability_chirho"]
+modules_chirho = ["ids_chirho", "keys_chirho", "query_chirho", "corpus_chirho", "morphology_chirho", "morph_parser_chirho", "result_chirho", "error_chirho", "capability_chirho", "xref_chirho", "saved_search_chirho"]
 key_types_chirho = [
     "VerseRefChirho", "PassageRangeChirho", "ScopeChirho", "TestamentChirho",
     "QueryChirho", "QueryNodeChirho", "SearchHitChirho", "QueryResultChirho",
@@ -34,8 +34,10 @@ key_types_chirho = [
     "MoodChirho", "CaseChirho", "GenderChirho", "PersonChirho",
     "StrongNumberChirho", "LemmaIdChirho", "TokenPositionChirho",
     "ModuleMetadataChirho", "ModuleTypeChirho",
+    "XRefTypeChirho", "CrossRefEntryChirho", "CrossRefGraphChirho",
+    "SavedSearchChirho",
 ]
-key_traits_chirho = ["QueryExecutorChirho", "CorpusReaderChirho", "IngestAdapterChirho"]
+key_traits_chirho = ["QueryExecutorChirho", "CorpusReaderChirho", "IngestAdapterChirho", "CrossRefGraphChirho"]
 dependencies_chirho = ["serde", "serde_json", "thiserror"]
 
   [[crate_chirho.capability_chirho]]
@@ -68,6 +70,11 @@ dependencies_chirho = ["serde", "serde_json", "thiserror"]
   status_chirho = "implemented"
   tests_chirho = true
 
+  [[crate_chirho.capability_chirho]]
+  name_chirho = "Cross-Reference Types (XRefTypeChirho, CrossRefEntryChirho, CrossRefGraphChirho)"
+  status_chirho = "implemented"
+  tests_chirho = true
+
 [[crate_chirho]]
 name_chirho = "rhema_core_chirho"
 purpose_chirho = "Core engine logic: corpus management, module resolution, and configuration"
@@ -87,9 +94,9 @@ name_chirho = "rhema_ingest_chirho"
 purpose_chirho = "Ingestion adapters: SWORD module reading, token extraction, chapter/verse iteration"
 layer_chirho = "core"
 phase_chirho = "A"
-modules_chirho = ["sword_adapter_chirho", "token_extractor_chirho"]
+modules_chirho = ["sword_adapter_chirho", "token_extractor_chirho", "xref_extractor_chirho"]
 key_types_chirho = ["SwordAdapterChirho", "TokenExtractorChirho"]
-dependencies_chirho = ["rhema_contracts_chirho", "rsword_chirho"]
+dependencies_chirho = ["rhema_contracts_chirho", "rsword_chirho", "regex"]
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "SWORD Module Reading"
@@ -98,6 +105,11 @@ dependencies_chirho = ["rhema_contracts_chirho", "rsword_chirho"]
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "Token Extraction (Strong's, Lemma, Morph)"
+  status_chirho = "implemented"
+  tests_chirho = true
+
+  [[crate_chirho.capability_chirho]]
+  name_chirho = "Cross-Reference Extraction (OSIS + GBF markup)"
   status_chirho = "implemented"
   tests_chirho = true
 
@@ -147,13 +159,13 @@ dependencies_chirho = ["rhema_contracts_chirho", "rhema_ingest_chirho", "tantivy
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "Semantic Domain Index Fields (sense, domain)"
-  status_chirho = "planned"
-  tests_chirho = false
+  status_chirho = "implemented"
+  tests_chirho = true
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "Cross-Reference Graph Index"
-  status_chirho = "planned"
-  tests_chirho = false
+  status_chirho = "implemented"
+  tests_chirho = true
 
 [[crate_chirho]]
 name_chirho = "rhema_query_chirho"
@@ -211,13 +223,13 @@ dependencies_chirho = ["rhema_contracts_chirho", "rhema_index_chirho", "regex"]
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "Semantic Domain Syntax (domain:, sense:)"
-  status_chirho = "planned"
-  tests_chirho = false
+  status_chirho = "implemented"
+  tests_chirho = true
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "Cross-Reference Syntax (xref:, XREF/N)"
-  status_chirho = "planned"
-  tests_chirho = false
+  status_chirho = "implemented"
+  tests_chirho = true
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "Query Plan Optimization"
@@ -231,8 +243,8 @@ dependencies_chirho = ["rhema_contracts_chirho", "rhema_index_chirho", "regex"]
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "GraphExpand Plan Step"
-  status_chirho = "stubbed"
-  tests_chirho = false
+  status_chirho = "implemented"
+  tests_chirho = true
 
 [[crate_chirho]]
 name_chirho = "rhema_exec_chirho"
@@ -241,7 +253,7 @@ layer_chirho = "core"
 phase_chirho = "A"
 modules_chirho = ["executor_chirho", "error_chirho"]
 key_types_chirho = ["QueryExecutorImplChirho", "ExecErrorChirho"]
-dependencies_chirho = ["rhema_contracts_chirho", "rhema_query_chirho", "rhema_ingest_chirho", "rhema_index_chirho", "rsword_chirho"]
+dependencies_chirho = ["rhema_contracts_chirho", "rhema_query_chirho", "rhema_ingest_chirho", "rhema_index_chirho", "rhema_module_chirho", "rsword_chirho"]
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "Tantivy-backed Full-text Execution"
@@ -285,18 +297,18 @@ dependencies_chirho = ["rhema_contracts_chirho", "rhema_query_chirho", "rhema_in
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "Semantic Domain Execution"
-  status_chirho = "planned"
-  tests_chirho = false
+  status_chirho = "implemented"
+  tests_chirho = true
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "Cross-Reference Graph Execution"
-  status_chirho = "planned"
-  tests_chirho = false
+  status_chirho = "implemented"
+  tests_chirho = true
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "Saved Searches Persistence"
-  status_chirho = "planned"
-  tests_chirho = false
+  status_chirho = "implemented"
+  tests_chirho = true
 
 # ─── Integration Surfaces (Phase B+) ───────────────────────────
 
@@ -330,41 +342,46 @@ dependencies_chirho = ["rhema_contracts_chirho", "rhema_exec_chirho", "clap"]
 
 [[crate_chirho]]
 name_chirho = "rhema_gui_chirho"
-purpose_chirho = "GUI integration: Slint UI bindings for Codex Lux Chirho"
+purpose_chirho = "GUI integration: Slint UI bindings, visual query builder for Codex Lux Chirho"
 layer_chirho = "integration"
 phase_chirho = "B"
-modules_chirho = []
-key_types_chirho = []
-dependencies_chirho = ["rhema_contracts_chirho"]
+modules_chirho = ["query_builder_chirho"]
+key_types_chirho = ["QueryElementChirho", "OperatorTypeChirho", "QueryBuilderModelChirho"]
+dependencies_chirho = ["rhema_contracts_chirho", "rhema_query_chirho", "serde", "serde_json"]
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "GUI Bindings"
   status_chirho = "implemented"
   tests_chirho = false
 
+  [[crate_chirho.capability_chirho]]
+  name_chirho = "Visual Query Builder (drag-and-drop elements, roundtrip serialization)"
+  status_chirho = "implemented"
+  tests_chirho = true
+
 [[crate_chirho]]
 name_chirho = "rhema_api_chirho"
-purpose_chirho = "REST API server and external platform integration clients"
+purpose_chirho = "REST API server, Biblia client, Accordance URL scheme, and external platform integration"
 layer_chirho = "integration"
 phase_chirho = "B"
-modules_chirho = []
-key_types_chirho = []
-dependencies_chirho = ["rhema_contracts_chirho", "reqwest", "tokio"]
+modules_chirho = ["accordance_chirho", "error_chirho", "handlers_chirho", "router_chirho", "biblia_client_chirho"]
+key_types_chirho = ["ApiErrorChirho", "BibliaClientChirho", "BibliaSearchResultChirho", "BibliaPassageChirho"]
+dependencies_chirho = ["rhema_contracts_chirho", "rhema_query_chirho", "rhema_integration_chirho", "axum", "tower-http", "reqwest", "serde", "serde_json"]
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "REST API"
-  status_chirho = "planned"
-  tests_chirho = false
+  status_chirho = "implemented"
+  tests_chirho = true
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "Biblia API Client (Logos)"
-  status_chirho = "planned"
-  tests_chirho = false
+  status_chirho = "implemented"
+  tests_chirho = true
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "Accordance URL Scheme Generator"
-  status_chirho = "planned"
-  tests_chirho = false
+  status_chirho = "implemented"
+  tests_chirho = true
 
 [[crate_chirho]]
 name_chirho = "rhema_ai_chirho"
@@ -478,13 +495,14 @@ name_chirho = "rhema_module_chirho"
 purpose_chirho = "SQLite-based module format: self-contained .rhema files with verses, tokens, morphology, and metadata"
 layer_chirho = "core"
 phase_chirho = "A"
-modules_chirho = ["schema_chirho", "writer_chirho", "reader_chirho", "morph_query_chirho", "converter_chirho", "error_chirho"]
+modules_chirho = ["schema_chirho", "writer_chirho", "reader_chirho", "morph_query_chirho", "converter_chirho", "xref_store_chirho", "xref_importer_chirho", "saved_search_store_chirho", "domain_store_chirho", "syntax_store_chirho", "error_chirho"]
 key_types_chirho = [
     "ModuleWriterChirho", "ModuleReaderChirho", "VerseEntryChirho", "TokenEntryChirho",
     "VerseRowChirho", "TokenRowChirho", "MorphHitChirho",
     "SwordToRhemaConverterChirho", "ConversionResultChirho", "ModuleErrorChirho",
+    "XrefStoreChirho", "SavedSearchStoreChirho", "DomainStoreChirho", "SyntaxStoreChirho",
 ]
-dependencies_chirho = ["rhema_contracts_chirho", "rhema_ingest_chirho", "rusqlite", "thiserror", "log", "serde", "serde_json"]
+dependencies_chirho = ["rhema_contracts_chirho", "rhema_ingest_chirho", "rsword_chirho", "rusqlite", "thiserror", "log", "serde", "serde_json"]
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "SQLite Module Schema (verses, tokens, metadata)"
@@ -511,49 +529,74 @@ dependencies_chirho = ["rhema_contracts_chirho", "rhema_ingest_chirho", "rusqlit
   status_chirho = "implemented"
   tests_chirho = true
 
+  [[crate_chirho.capability_chirho]]
+  name_chirho = "Cross-Reference SQLite Store (BFS traversal, bidirectional edges)"
+  status_chirho = "implemented"
+  tests_chirho = true
+
+  [[crate_chirho.capability_chirho]]
+  name_chirho = "Parallel Passage Importer (rsword_chirho built-in parallels)"
+  status_chirho = "implemented"
+  tests_chirho = true
+
+  [[crate_chirho.capability_chirho]]
+  name_chirho = "Saved Search Store (save/load/list/search by tag)"
+  status_chirho = "implemented"
+  tests_chirho = true
+
+  [[crate_chirho.capability_chirho]]
+  name_chirho = "Semantic Domain Store (sense/domain/verse mappings)"
+  status_chirho = "implemented"
+  tests_chirho = true
+
+  [[crate_chirho.capability_chirho]]
+  name_chirho = "Syntax/Clause Store (clause type/hierarchy)"
+  status_chirho = "implemented"
+  tests_chirho = true
+
 [[crate_chirho]]
 name_chirho = "rhema_ffi_chirho"
 purpose_chirho = "C FFI bindings for embedding rhema in C/C++/Swift/Kotlin"
 layer_chirho = "integration"
 phase_chirho = "B"
 modules_chirho = []
-key_types_chirho = []
-dependencies_chirho = ["rhema_contracts_chirho"]
+key_types_chirho = ["RhemaHandleChirho"]
+dependencies_chirho = ["rhema_contracts_chirho", "rhema_integration_chirho", "rhema_query_chirho", "serde_json"]
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "C FFI Bindings"
-  status_chirho = "planned"
-  tests_chirho = false
+  status_chirho = "implemented"
+  tests_chirho = true
 
 [[crate_chirho]]
 name_chirho = "rhema_wasm_chirho"
-purpose_chirho = "WASM build target for browser-based search"
+purpose_chirho = "WASM build target for browser-based search (parse, validate, plan queries)"
 layer_chirho = "integration"
 phase_chirho = "B"
-modules_chirho = []
+modules_chirho = ["api_chirho"]
 key_types_chirho = []
-dependencies_chirho = ["rhema_contracts_chirho"]
+dependencies_chirho = ["rhema_contracts_chirho", "rhema_query_chirho", "serde_json", "wasm-bindgen"]
 
   [[crate_chirho.capability_chirho]]
   name_chirho = "WASM Target"
-  status_chirho = "planned"
-  tests_chirho = false
+  status_chirho = "implemented"
+  tests_chirho = true
 
 # ─── Quality & Research ────────────────────────────────────────
 
 [[crate_chirho]]
 name_chirho = "rhema_accel_chirho"
-purpose_chirho = "Hardware acceleration research: SIMD, GPU compute via wgpu"
+purpose_chirho = "Hardware acceleration research: SIMD bitset operations, GPU compute via wgpu"
 layer_chirho = "research"
 phase_chirho = "D"
-modules_chirho = []
+modules_chirho = ["bitset_chirho"]
 key_types_chirho = []
 dependencies_chirho = ["rhema_contracts_chirho"]
 
   [[crate_chirho.capability_chirho]]
-  name_chirho = "SIMD Acceleration"
-  status_chirho = "planned"
-  tests_chirho = false
+  name_chirho = "SIMD Acceleration (AVX2 bitset intersect/union with scalar fallback)"
+  status_chirho = "implemented"
+  tests_chirho = true
 
 [[crate_chirho]]
 name_chirho = "rhema_testkit_chirho"
@@ -681,30 +724,30 @@ note_chirho = "Robinson Greek + OSHM Hebrew morph codes, 9 prefix types (morph:,
 
 [[search_feature_chirho]]
 name_chirho = "Semantic Domain Search"
-status_chirho = "planned"
-parser_chirho = false
-planner_chirho = false
-executor_chirho = false
-tests_chirho = false
-note_chirho = "Requires semantic-chirho SQLite bridge"
+status_chirho = "implemented"
+parser_chirho = true
+planner_chirho = true
+executor_chirho = true
+tests_chirho = true
+note_chirho = "domain: and sense: prefixes, DomainStoreChirho SQLite backend, graceful fallback"
 
 [[search_feature_chirho]]
 name_chirho = "Cross-Reference Graph Search"
-status_chirho = "planned"
-parser_chirho = false
-planner_chirho = false
-executor_chirho = false
-tests_chirho = false
-note_chirho = "GraphExpandChirho node exists in IR, planner stub exists"
+status_chirho = "implemented"
+parser_chirho = true
+planner_chirho = true
+executor_chirho = true
+tests_chirho = true
+note_chirho = "xref: prefix + XREF/N operator, SQLite adjacency list, BFS traversal, parallel passage import"
 
 [[search_feature_chirho]]
 name_chirho = "Syntax/Clause Search"
-status_chirho = "planned"
-parser_chirho = false
-planner_chirho = false
-executor_chirho = false
-tests_chirho = false
-note_chirho = "Phase D research track (ETCBC/BHSA data)"
+status_chirho = "implemented"
+parser_chirho = true
+planner_chirho = true
+executor_chirho = true
+tests_chirho = true
+note_chirho = "syntax: and clause: prefixes, SyntaxStoreChirho SQLite backend, graceful fallback"
 
 [[search_feature_chirho]]
 name_chirho = "Discourse Analysis (Arcing)"
@@ -753,29 +796,30 @@ note_chirho = "Weighted merge + RRF strategies, configurable keyword weight"
 
 [[search_feature_chirho]]
 name_chirho = "Saved Searches"
-status_chirho = "planned"
+status_chirho = "implemented"
 parser_chirho = false
 planner_chirho = false
-executor_chirho = false
-tests_chirho = false
+executor_chirho = true
+tests_chirho = true
+note_chirho = "SavedSearchStoreChirho with save/load/list/search_by_tag, CLI --save/--load flags"
 
 [[search_feature_chirho]]
 name_chirho = "Visual Query Builder"
-status_chirho = "planned"
-parser_chirho = false
+status_chirho = "implemented"
+parser_chirho = true
 planner_chirho = false
 executor_chirho = false
-tests_chirho = false
-note_chirho = "Phase D, depends on Slint GUI work"
+tests_chirho = true
+note_chirho = "QueryBuilderModelChirho with drag-and-drop elements, roundtrip serialization via QueryParserChirho"
 
 # ─── Platform Integrations ─────────────────────────────────────
 
 [[integration_chirho]]
 platform_chirho = "Logos"
 method_chirho = "Biblia REST API"
-status_chirho = "planned"
+status_chirho = "implemented"
 feasibility_chirho = "high"
-note_chirho = "Free API for Bible text lookup/search"
+note_chirho = "BibliaClientChirho with search, lookup, available_bibles methods"
 
 [[integration_chirho]]
 platform_chirho = "Logos"
@@ -787,9 +831,9 @@ note_chirho = "rsword_chirho reads same SWORD modules"
 [[integration_chirho]]
 platform_chirho = "Accordance"
 method_chirho = "URL Scheme Deep Linking"
-status_chirho = "planned"
+status_chirho = "implemented"
 feasibility_chirho = "high"
-note_chirho = "Generate accordance.bible/link/ URLs"
+note_chirho = "accordance_url_chirho + accordance_search_url_chirho with 66-book SWORD→Accordance mapping"
 
 [[integration_chirho]]
 platform_chirho = "Accordance"
@@ -817,19 +861,19 @@ note_chirho = "Token→sense→domain pipeline with 38+ language translation sig
 [dependency_graph_chirho]
 rhema_contracts_chirho = []
 rhema_core_chirho = ["rhema_contracts_chirho"]
-rhema_ingest_chirho = ["rhema_contracts_chirho", "rsword_chirho"]
+rhema_ingest_chirho = ["rhema_contracts_chirho", "rsword_chirho", "regex"]
 rhema_index_chirho = ["rhema_contracts_chirho", "rhema_ingest_chirho", "rsword_chirho"]
 rhema_query_chirho = ["rhema_contracts_chirho", "rhema_index_chirho"]
-rhema_exec_chirho = ["rhema_contracts_chirho", "rhema_query_chirho", "rhema_ingest_chirho", "rhema_index_chirho", "rhema_ai_chirho", "rsword_chirho"]
+rhema_exec_chirho = ["rhema_contracts_chirho", "rhema_query_chirho", "rhema_ingest_chirho", "rhema_index_chirho", "rhema_ai_chirho", "rhema_module_chirho", "rsword_chirho"]
 rhema_integration_chirho = ["rhema_contracts_chirho", "rhema_core_chirho", "rhema_exec_chirho"]
-rhema_cli_chirho = ["rhema_contracts_chirho", "rhema_exec_chirho"]
-rhema_gui_chirho = ["rhema_contracts_chirho"]
-rhema_api_chirho = ["rhema_contracts_chirho"]
+rhema_cli_chirho = ["rhema_contracts_chirho", "rhema_exec_chirho", "rhema_module_chirho"]
+rhema_gui_chirho = ["rhema_contracts_chirho", "rhema_query_chirho"]
+rhema_api_chirho = ["rhema_contracts_chirho", "rhema_query_chirho", "rhema_integration_chirho", "axum", "tower-http", "reqwest"]
 rhema_ai_chirho = ["rhema_contracts_chirho", "async-trait", "rusqlite"]
 rhema_discourse_chirho = ["rhema_contracts_chirho", "rhema_ai_chirho", "rusqlite"]
-rhema_module_chirho = ["rhema_contracts_chirho", "rhema_ingest_chirho", "rusqlite"]
-rhema_ffi_chirho = ["rhema_contracts_chirho"]
-rhema_wasm_chirho = ["rhema_contracts_chirho"]
+rhema_module_chirho = ["rhema_contracts_chirho", "rhema_ingest_chirho", "rsword_chirho", "rusqlite", "uuid"]
+rhema_ffi_chirho = ["rhema_contracts_chirho", "rhema_integration_chirho", "rhema_query_chirho", "serde_json"]
+rhema_wasm_chirho = ["rhema_contracts_chirho", "rhema_query_chirho", "serde_json", "wasm-bindgen"]
 rhema_accel_chirho = ["rhema_contracts_chirho"]
 rhema_testkit_chirho = ["rhema_contracts_chirho"]
 rhema_bench_chirho = ["rhema_contracts_chirho", "rhema_exec_chirho"]

@@ -10,11 +10,20 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "C FFI bindings for non-Rust consumers"
+readme = "../../README.md"
+keywords.workspace = true
+categories.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 rhema_contracts_chirho.workspace = true
 rhema_core_chirho.workspace = true
 rhema_integration_chirho.workspace = true
+rhema_query_chirho.workspace = true
+serde_json.workspace = true
+log.workspace = true
 
 [lints.rust]
 # FFI requires unsafe code — override workspace forbid

@@ -592,42 +592,36 @@ function generateSearchCapabilitiesChirho(
   linesChirho.push("");
   linesChirho.push("| Feature | Logos | Accordance | BibleArc | rhema_chirho |");
   linesChirho.push("|---------|-------|------------|----------|-------------|");
-  linesChirho.push(
-    "| Boolean Search | yes | yes | - | **implemented** |"
-  );
-  linesChirho.push(
-    "| Phrase Search | yes | yes | - | **implemented** |"
-  );
-  linesChirho.push(
-    "| Proximity | yes | yes | - | **implemented** |"
-  );
-  linesChirho.push(
-    "| Strong's | yes | yes | - | **implemented** |"
-  );
-  linesChirho.push(
-    "| Lemma | yes | yes | - | **implemented** |"
-  );
-  linesChirho.push(
-    "| Morphology | yes | yes | - | planned |"
-  );
-  linesChirho.push(
-    "| Semantic Domain | yes | yes | - | planned |"
-  );
-  linesChirho.push(
-    "| Syntax Search | yes | yes | - | planned (Phase D) |"
-  );
-  linesChirho.push(
-    "| Cross-references | yes | yes | - | planned |"
-  );
-  linesChirho.push(
-    "| Discourse Analysis | - | - | yes | planned (Phase D) |"
-  );
-  linesChirho.push(
-    "| Visual Query Builder | yes | yes | - | planned (Phase D) |"
-  );
-  linesChirho.push(
-    "| Saved Searches | yes | yes | - | planned |"
-  );
+
+  // Map manifest feature names to comparison rows
+  const comparisonMapChirho: Record<string, { logosChirho: string; accordanceChirho: string; biblearcChirho: string }> = {
+    "Boolean Search": { logosChirho: "yes", accordanceChirho: "yes", biblearcChirho: "-" },
+    "Phrase Search": { logosChirho: "yes", accordanceChirho: "yes", biblearcChirho: "-" },
+    "Proximity": { logosChirho: "yes", accordanceChirho: "yes", biblearcChirho: "-" },
+    "Strong's Number": { logosChirho: "yes", accordanceChirho: "yes", biblearcChirho: "-" },
+    "Lemma": { logosChirho: "yes", accordanceChirho: "yes", biblearcChirho: "-" },
+    "Morphology": { logosChirho: "yes", accordanceChirho: "yes", biblearcChirho: "-" },
+    "Semantic Domain": { logosChirho: "yes", accordanceChirho: "yes", biblearcChirho: "-" },
+    "Syntax/Clause": { logosChirho: "yes", accordanceChirho: "yes", biblearcChirho: "-" },
+    "Cross-references": { logosChirho: "yes", accordanceChirho: "yes", biblearcChirho: "-" },
+    "Discourse Analysis": { logosChirho: "-", accordanceChirho: "-", biblearcChirho: "yes" },
+    "Visual Query Builder": { logosChirho: "yes", accordanceChirho: "yes", biblearcChirho: "-" },
+    "Saved Searches": { logosChirho: "yes", accordanceChirho: "yes", biblearcChirho: "-" },
+    "Semantic Search (LLM)": { logosChirho: "-", accordanceChirho: "-", biblearcChirho: "-" },
+    "Concept Mapping": { logosChirho: "-", accordanceChirho: "-", biblearcChirho: "-" },
+    "Query Expansion (LLM)": { logosChirho: "-", accordanceChirho: "-", biblearcChirho: "-" },
+    "Hybrid Ranking": { logosChirho: "-", accordanceChirho: "-", biblearcChirho: "-" },
+    "Scope Filter": { logosChirho: "yes", accordanceChirho: "yes", biblearcChirho: "-" },
+  };
+
+  for (const featChirho of featuresChirho) {
+    const compChirho = comparisonMapChirho[featChirho.name_chirho];
+    if (compChirho) {
+      linesChirho.push(
+        `| ${featChirho.name_chirho} | ${compChirho.logosChirho} | ${compChirho.accordanceChirho} | ${compChirho.biblearcChirho} | **${featChirho.status_chirho}** |`
+      );
+    }
+  }
   linesChirho.push("");
 
   // Platform integrations

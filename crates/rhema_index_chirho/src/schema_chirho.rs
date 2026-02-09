@@ -8,7 +8,7 @@
 use tantivy::schema::{Field, Schema, FAST, INDEXED, STORED, STRING, TEXT};
 
 /// Schema version — bump when fields change (invalidates existing indexes).
-pub const SCHEMA_VERSION_CHIRHO: u32 = 2;
+pub const SCHEMA_VERSION_CHIRHO: u32 = 3;
 
 /// Field names for the Rhema Tantivy schema.
 pub const FIELD_KEY_CHIRHO: &str = "key";
@@ -30,6 +30,10 @@ pub const FIELD_CASE_CHIRHO: &str = "case_field";
 pub const FIELD_NUMBER_CHIRHO: &str = "number_field";
 pub const FIELD_GENDER_CHIRHO: &str = "gender";
 pub const FIELD_PERSON_CHIRHO: &str = "person";
+
+// Phase 6: Semantic domain fields
+pub const FIELD_SENSE_CHIRHO: &str = "sense";
+pub const FIELD_DOMAIN_CHIRHO: &str = "domain";
 
 /// The Rhema index schema with all field handles.
 #[derive(Clone, Debug)]
@@ -72,6 +76,12 @@ pub struct RhemaSchemaChirho {
     pub gender_field_chirho: Field,
     /// Person facet — keyword.
     pub person_field_chirho: Field,
+
+    // Phase 6: Semantic domain fields
+    /// Sense identifier — keyword (e.g., "love.01").
+    pub sense_field_chirho: Field,
+    /// Semantic domain — keyword (e.g., "love").
+    pub domain_field_chirho: Field,
 }
 
 impl RhemaSchemaChirho {
@@ -123,6 +133,12 @@ impl RhemaSchemaChirho {
         let person_field_chirho =
             builder_chirho.add_text_field(FIELD_PERSON_CHIRHO, STRING);
 
+        // Phase 6: Semantic domain fields
+        let sense_field_chirho =
+            builder_chirho.add_text_field(FIELD_SENSE_CHIRHO, STRING);
+        let domain_field_chirho =
+            builder_chirho.add_text_field(FIELD_DOMAIN_CHIRHO, STRING);
+
         let schema_chirho = builder_chirho.build();
 
         Self {
@@ -144,6 +160,8 @@ impl RhemaSchemaChirho {
             number_field_chirho,
             gender_field_chirho,
             person_field_chirho,
+            sense_field_chirho,
+            domain_field_chirho,
         }
     }
 }
@@ -179,15 +197,22 @@ mod tests_chirho {
     }
 
     #[test]
+    fn test_domain_fields_exist_chirho() {
+        let schema_chirho = RhemaSchemaChirho::build_chirho();
+        assert!(schema_chirho.schema_chirho.get_field(FIELD_SENSE_CHIRHO).is_ok());
+        assert!(schema_chirho.schema_chirho.get_field(FIELD_DOMAIN_CHIRHO).is_ok());
+    }
+
+    #[test]
     fn test_schema_version_chirho() {
-        assert_eq!(SCHEMA_VERSION_CHIRHO, 2);
+        assert_eq!(SCHEMA_VERSION_CHIRHO, 3);
     }
 
     #[test]
     fn test_total_field_count_chirho() {
         let schema_chirho = RhemaSchemaChirho::build_chirho();
-        // 7 original + 10 morph = 17 fields
+        // 7 original + 10 morph + 2 domain = 19 fields
         let field_count_chirho = schema_chirho.schema_chirho.fields().count();
-        assert_eq!(field_count_chirho, 17);
+        assert_eq!(field_count_chirho, 19);
     }
 }

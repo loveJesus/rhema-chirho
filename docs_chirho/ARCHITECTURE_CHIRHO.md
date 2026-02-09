@@ -45,7 +45,7 @@ User Query → parser_chirho → QueryNodeChirho (IR) → planner_chirho → Pla
 
 Shared type-level contracts, newtypes, DTOs, and trait definitions
 
-**Modules:** ids_chirho, keys_chirho, query_chirho, corpus_chirho, morphology_chirho, morph_parser_chirho, result_chirho, error_chirho, capability_chirho
+**Modules:** ids_chirho, keys_chirho, query_chirho, corpus_chirho, morphology_chirho, morph_parser_chirho, result_chirho, error_chirho, capability_chirho, xref_chirho, saved_search_chirho
 
 **Capabilities:**
 
@@ -55,6 +55,7 @@ Shared type-level contracts, newtypes, DTOs, and trait definitions
 - [x] Result DTOs
 - [x] Capability Traits
 - [x] Strong's Number Types
+- [x] Cross-Reference Types (XRefTypeChirho, CrossRefEntryChirho, CrossRefGraphChirho)
 
 #### `rhema_core_chirho`
 
@@ -68,12 +69,13 @@ Core engine logic: corpus management, module resolution, and configuration
 
 Ingestion adapters: SWORD module reading, token extraction, chapter/verse iteration
 
-**Modules:** sword_adapter_chirho, token_extractor_chirho
+**Modules:** sword_adapter_chirho, token_extractor_chirho, xref_extractor_chirho
 
 **Capabilities:**
 
 - [x] SWORD Module Reading
 - [x] Token Extraction (Strong's, Lemma, Morph)
+- [x] Cross-Reference Extraction (OSIS + GBF markup)
 
 #### `rhema_index_chirho`
 
@@ -90,8 +92,8 @@ Full-text indexing engine: Tantivy schema, indexer, searcher, manifest versionin
 - [x] Book-scoped Search
 - [x] Manifest Versioning
 - [x] Morphology Index Fields (morph, lemma, pos, tense, voice, mood, case, number, gender, person)
-- [ ] Semantic Domain Index Fields (sense, domain)
-- [ ] Cross-Reference Graph Index
+- [x] Semantic Domain Index Fields (sense, domain)
+- [x] Cross-Reference Graph Index
 
 #### `rhema_query_chirho`
 
@@ -110,11 +112,11 @@ Query parser, IR, and planner: text queries → QueryNodeChirho → PlanStepChir
 - [x] Scope Filtering ([Book], [OT], [NT])
 - [x] Implicit AND (multi-word)
 - [x] Morphology Query Syntax (morph:, pos:, tense:, voice:, mood:, case:, number:, gender:, person:)
-- [ ] Semantic Domain Syntax (domain:, sense:)
-- [ ] Cross-Reference Syntax (xref:, XREF/N)
+- [x] Semantic Domain Syntax (domain:, sense:)
+- [x] Cross-Reference Syntax (xref:, XREF/N)
 - [x] Query Plan Optimization
 - [x] Morph Plan Step
-- [-] GraphExpand Plan Step
+- [x] GraphExpand Plan Step
 
 #### `rhema_exec_chirho`
 
@@ -132,15 +134,15 @@ Query execution runtime: dispatches planned queries against Tantivy and regex ba
 - [x] NOT Exclusion Execution
 - [x] Proximity Execution
 - [x] Morphology Execution
-- [ ] Semantic Domain Execution
-- [ ] Cross-Reference Graph Execution
-- [ ] Saved Searches Persistence
+- [x] Semantic Domain Execution
+- [x] Cross-Reference Graph Execution
+- [x] Saved Searches Persistence
 
 #### `rhema_module_chirho`
 
 SQLite-based module format: self-contained .rhema files with verses, tokens, morphology, and metadata
 
-**Modules:** schema_chirho, writer_chirho, reader_chirho, morph_query_chirho, converter_chirho, error_chirho
+**Modules:** schema_chirho, writer_chirho, reader_chirho, morph_query_chirho, converter_chirho, xref_store_chirho, xref_importer_chirho, saved_search_store_chirho, domain_store_chirho, syntax_store_chirho, error_chirho
 
 **Capabilities:**
 
@@ -149,6 +151,11 @@ SQLite-based module format: self-contained .rhema files with verses, tokens, mor
 - [x] Module Reader (query verses, tokens, morphology)
 - [x] Morphology Query via SQL WHERE
 - [x] SWORD → .rhema Converter
+- [x] Cross-Reference SQLite Store (BFS traversal, bidirectional edges)
+- [x] Parallel Passage Importer (rsword_chirho built-in parallels)
+- [x] Saved Search Store (save/load/list/search by tag)
+- [x] Semantic Domain Store (sense/domain/verse mappings)
+- [x] Syntax/Clause Store (clause type/hierarchy)
 
 ### Integration Layer
 
@@ -170,21 +177,26 @@ CLI binary: search, index, and manage modules from the terminal
 
 #### `rhema_gui_chirho`
 
-GUI integration: Slint UI bindings for Codex Lux Chirho
+GUI integration: Slint UI bindings, visual query builder for Codex Lux Chirho
+
+**Modules:** query_builder_chirho
 
 **Capabilities:**
 
 - [x] GUI Bindings
+- [x] Visual Query Builder (drag-and-drop elements, roundtrip serialization)
 
 #### `rhema_api_chirho`
 
-REST API server and external platform integration clients
+REST API server, Biblia client, Accordance URL scheme, and external platform integration
+
+**Modules:** accordance_chirho, error_chirho, handlers_chirho, router_chirho, biblia_client_chirho
 
 **Capabilities:**
 
-- [ ] REST API
-- [ ] Biblia API Client (Logos)
-- [ ] Accordance URL Scheme Generator
+- [x] REST API
+- [x] Biblia API Client (Logos)
+- [x] Accordance URL Scheme Generator
 
 #### `rhema_ai_chirho`
 
@@ -225,15 +237,17 @@ C FFI bindings for embedding rhema in C/C++/Swift/Kotlin
 
 **Capabilities:**
 
-- [ ] C FFI Bindings
+- [x] C FFI Bindings
 
 #### `rhema_wasm_chirho`
 
-WASM build target for browser-based search
+WASM build target for browser-based search (parse, validate, plan queries)
+
+**Modules:** api_chirho
 
 **Capabilities:**
 
-- [ ] WASM Target
+- [x] WASM Target
 
 ### Quality Layer
 
@@ -257,11 +271,13 @@ Performance benchmarks for indexing and search
 
 #### `rhema_accel_chirho`
 
-Hardware acceleration research: SIMD, GPU compute via wgpu
+Hardware acceleration research: SIMD bitset operations, GPU compute via wgpu
+
+**Modules:** bitset_chirho
 
 **Capabilities:**
 
-- [ ] SIMD Acceleration
+- [x] SIMD Acceleration (AVX2 bitset intersect/union with scalar fallback)
 
 ---
-*Generated by gen_docs_chirho.ts on 2026-02-08*
+*Generated by gen_docs_chirho.ts on 2026-02-09*

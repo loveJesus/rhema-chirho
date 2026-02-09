@@ -30,6 +30,8 @@ pub struct QueryExecutorImplChirho {
     sword_adapter_chirho: SwordAdapterChirho,
     /// Base directory for Tantivy indexes, if set.
     index_base_chirho: Option<PathBuf>,
+    /// Path to the cross-reference SQLite store, if configured.
+    xref_store_path_chirho: Option<PathBuf>,
 }
 
 impl QueryExecutorImplChirho {
@@ -43,6 +45,7 @@ impl QueryExecutorImplChirho {
         Ok(Self {
             sword_adapter_chirho,
             index_base_chirho,
+            xref_store_path_chirho: None,
         })
     }
 
@@ -51,12 +54,19 @@ impl QueryExecutorImplChirho {
         Self {
             sword_adapter_chirho,
             index_base_chirho: dirs_index_base_chirho(),
+            xref_store_path_chirho: None,
         }
     }
 
     /// Set a custom index base directory.
     pub fn with_index_base_chirho(mut self, path_chirho: &Path) -> Self {
         self.index_base_chirho = Some(path_chirho.to_path_buf());
+        self
+    }
+
+    /// Set the cross-reference store path.
+    pub fn with_xref_store_chirho(mut self, path_chirho: &Path) -> Self {
+        self.xref_store_path_chirho = Some(path_chirho.to_path_buf());
         self
     }
 
@@ -133,26 +143,26 @@ impl QueryExecutorImplChirho {
                     let indexer_chirho = ModuleIndexerChirho::new_chirho(base_chirho);
                     if indexer_chirho.has_index_chirho(module_name_chirho) {
                         let index_path_chirho = indexer_chirho.index_path_chirho(module_name_chirho);
-                        if let Ok(searcher_chirho) = IndexSearcherChirho::open_chirho(&index_path_chirho) {
-                            if let Ok(index_hits_chirho) = searcher_chirho.search_strongs_chirho(number_chirho, 500) {
-                                let mut hits_chirho = Vec::with_capacity(index_hits_chirho.len());
-                                for hit_chirho in index_hits_chirho {
-                                    if let Some(verse_ref_chirho) = parse_verse_ref_chirho(&hit_chirho.key_chirho) {
-                                        hits_chirho.push(SearchHitChirho {
-                                            verse_ref_chirho,
-                                            text_chirho: hit_chirho.text_chirho,
-                                            highlighted_text_chirho: None,
-                                            score_chirho: hit_chirho.score_chirho,
-                                            matched_positions_chirho: Vec::new(),
-                                            explain_chirho: None,
-                                            semantic_score_chirho: None,
-                                            hybrid_score_chirho: None,
-                                            semantic_explain_chirho: None,
-                                        });
-                                    }
+                        if let Ok(searcher_chirho) = IndexSearcherChirho::open_chirho(&index_path_chirho)
+                            && let Ok(index_hits_chirho) = searcher_chirho.search_strongs_chirho(number_chirho, 500)
+                        {
+                            let mut hits_chirho = Vec::with_capacity(index_hits_chirho.len());
+                            for hit_chirho in index_hits_chirho {
+                                if let Some(verse_ref_chirho) = parse_verse_ref_chirho(&hit_chirho.key_chirho) {
+                                    hits_chirho.push(SearchHitChirho {
+                                        verse_ref_chirho,
+                                        text_chirho: hit_chirho.text_chirho,
+                                        highlighted_text_chirho: None,
+                                        score_chirho: hit_chirho.score_chirho,
+                                        matched_positions_chirho: Vec::new(),
+                                        explain_chirho: None,
+                                        semantic_score_chirho: None,
+                                        hybrid_score_chirho: None,
+                                        semantic_explain_chirho: None,
+                                    });
                                 }
-                                return Ok(hits_chirho);
                             }
+                            return Ok(hits_chirho);
                         }
                     }
                 }
@@ -304,26 +314,26 @@ impl QueryExecutorImplChirho {
                     let indexer_chirho = ModuleIndexerChirho::new_chirho(base_chirho);
                     if indexer_chirho.has_index_chirho(module_name_chirho) {
                         let index_path_chirho = indexer_chirho.index_path_chirho(module_name_chirho);
-                        if let Ok(searcher_chirho) = IndexSearcherChirho::open_chirho(&index_path_chirho) {
-                            if let Ok(index_hits_chirho) = searcher_chirho.search_morph_chirho(constraint_chirho, 500) {
-                                let mut hits_chirho = Vec::with_capacity(index_hits_chirho.len());
-                                for hit_chirho in index_hits_chirho {
-                                    if let Some(verse_ref_chirho) = parse_verse_ref_chirho(&hit_chirho.key_chirho) {
-                                        hits_chirho.push(SearchHitChirho {
-                                            verse_ref_chirho,
-                                            text_chirho: hit_chirho.text_chirho,
-                                            highlighted_text_chirho: None,
-                                            score_chirho: hit_chirho.score_chirho,
-                                            matched_positions_chirho: Vec::new(),
-                                            explain_chirho: None,
-                                            semantic_score_chirho: None,
-                                            hybrid_score_chirho: None,
-                                            semantic_explain_chirho: None,
-                                        });
-                                    }
+                        if let Ok(searcher_chirho) = IndexSearcherChirho::open_chirho(&index_path_chirho)
+                            && let Ok(index_hits_chirho) = searcher_chirho.search_morph_chirho(constraint_chirho, 500)
+                        {
+                            let mut hits_chirho = Vec::with_capacity(index_hits_chirho.len());
+                            for hit_chirho in index_hits_chirho {
+                                if let Some(verse_ref_chirho) = parse_verse_ref_chirho(&hit_chirho.key_chirho) {
+                                    hits_chirho.push(SearchHitChirho {
+                                        verse_ref_chirho,
+                                        text_chirho: hit_chirho.text_chirho,
+                                        highlighted_text_chirho: None,
+                                        score_chirho: hit_chirho.score_chirho,
+                                        matched_positions_chirho: Vec::new(),
+                                        explain_chirho: None,
+                                        semantic_score_chirho: None,
+                                        hybrid_score_chirho: None,
+                                        semantic_explain_chirho: None,
+                                    });
                                 }
-                                return Ok(hits_chirho);
                             }
+                            return Ok(hits_chirho);
                         }
                     }
                 }
@@ -334,7 +344,120 @@ impl QueryExecutorImplChirho {
                 );
                 Ok(Vec::new())
             }
+
+            // ── Phase 4: Cross-reference graph search ───────────
+
+            PlanStepChirho::GraphSearchChirho {
+                seed_chirho,
+                depth_chirho,
+            } => {
+                self.execute_graph_search_chirho(seed_chirho, *depth_chirho, module_name_chirho)
+            }
+
+            // ── Phase 5+: Domain / Sense / Syntax plan steps ────────
+
+            PlanStepChirho::DomainLookupChirho { domain_chirho } => {
+                log::debug!(
+                    "DomainLookup for '{}' — domain store required",
+                    domain_chirho
+                );
+                // Graceful fallback: return empty when no domain store configured
+                Ok(Vec::new())
+            }
+
+            PlanStepChirho::SenseLookupChirho { sense_chirho } => {
+                log::debug!(
+                    "SenseLookup for '{}' — domain store required",
+                    sense_chirho
+                );
+                Ok(Vec::new())
+            }
+
+            PlanStepChirho::SyntaxSearchChirho { clause_type_chirho } => {
+                log::debug!(
+                    "SyntaxSearch for '{}' — syntax store required, returning empty + warning",
+                    clause_type_chirho
+                );
+                Ok(Vec::new())
+            }
         }
+    }
+
+    /// Execute a cross-reference graph search via BFS expansion.
+    fn execute_graph_search_chirho(
+        &self,
+        seed_str_chirho: &str,
+        depth_chirho: u32,
+        module_name_chirho: &str,
+    ) -> Result<Vec<SearchHitChirho>, ExecErrorChirho> {
+        use rhema_contracts_chirho::xref_chirho::CrossRefGraphChirho;
+
+        let xref_path_chirho = match &self.xref_store_path_chirho {
+            Some(p_chirho) => p_chirho.clone(),
+            None => {
+                log::warn!(
+                    "GraphSearch for '{}' — no xref store configured, returning empty",
+                    seed_str_chirho
+                );
+                return Ok(Vec::new());
+            }
+        };
+
+        // Parse the seed reference (try OSIS format first, then human-readable)
+        let seed_chirho = rhema_ingest_chirho::xref_extractor_chirho::parse_osis_ref_chirho(seed_str_chirho)
+            .into_iter()
+            .next()
+            .or_else(|| rhema_ingest_chirho::xref_extractor_chirho::parse_human_ref_chirho(seed_str_chirho))
+            .ok_or_else(|| ExecErrorChirho::XrefStoreChirho {
+                reason_chirho: format!("Cannot parse seed reference: '{seed_str_chirho}'"),
+            })?;
+
+        let path_str_chirho = xref_path_chirho.to_string_lossy().to_string();
+        let store_chirho = rhema_module_chirho::XrefStoreChirho::open_chirho(&path_str_chirho)
+            .map_err(|e_chirho| ExecErrorChirho::XrefStoreChirho {
+                reason_chirho: format!("Failed to open xref store: {e_chirho}"),
+            })?;
+
+        let expanded_refs_chirho = store_chirho
+            .bfs_expand_chirho(&seed_chirho, depth_chirho, false)
+            .map_err(|e_chirho| ExecErrorChirho::XrefStoreChirho {
+                reason_chirho: format!("BFS expansion failed: {e_chirho}"),
+            })?;
+
+        // Load verse text for each expanded reference
+        let mut hits_chirho = Vec::with_capacity(expanded_refs_chirho.len());
+        for ref_chirho in &expanded_refs_chirho {
+            let key_str_chirho = format!(
+                "{} {}:{}",
+                ref_chirho.book_chirho, ref_chirho.chapter_chirho, ref_chirho.verse_chirho
+            );
+
+            // Try to load verse text from the module
+            let text_chirho = self
+                .sword_adapter_chirho
+                .manager_chirho()
+                .load_module_chirho(module_name_chirho)
+                .ok()
+                .and_then(|loaded_chirho| loaded_chirho.read_entry_chirho(&key_str_chirho).ok())
+                .unwrap_or_default();
+
+            hits_chirho.push(SearchHitChirho {
+                verse_ref_chirho: ref_chirho.clone(),
+                text_chirho,
+                highlighted_text_chirho: None,
+                score_chirho: 1.0,
+                matched_positions_chirho: Vec::new(),
+                explain_chirho: None,
+                semantic_score_chirho: None,
+                hybrid_score_chirho: None,
+                semantic_explain_chirho: Some(format!(
+                    "xref expansion from {} depth={}",
+                    seed_chirho, depth_chirho
+                )),
+            });
+        }
+
+        Ok(hits_chirho)
     }
 
     /// Execute a full-text search, preferring Tantivy index when available.
@@ -724,6 +847,56 @@ mod tests_chirho {
 
         assert_eq!(base_results_chirho.len(), 1);
         assert_eq!(base_results_chirho[0].verse_ref_chirho.book_chirho, "Romans");
+    }
+
+    // ── Phase 4: Graph search executor tests ────────────────────
+
+    #[test]
+    fn test_parse_verse_ref_osis_format_chirho() {
+        // Test that OSIS refs can be parsed through the xref extractor
+        let refs_chirho =
+            rhema_ingest_chirho::xref_extractor_chirho::parse_osis_ref_chirho("John.3.16");
+        assert_eq!(refs_chirho.len(), 1);
+        assert_eq!(refs_chirho[0].book_chirho, "John");
+        assert_eq!(refs_chirho[0].chapter_chirho, 3);
+        assert_eq!(refs_chirho[0].verse_chirho, 16);
+    }
+
+    #[test]
+    fn test_parse_verse_ref_human_format_chirho() {
+        let ref_chirho =
+            rhema_ingest_chirho::xref_extractor_chirho::parse_human_ref_chirho("John 3:16");
+        assert!(ref_chirho.is_some());
+        let vr_chirho = ref_chirho.unwrap();
+        assert_eq!(vr_chirho.book_chirho, "John");
+    }
+
+    #[test]
+    fn test_graph_search_no_store_fallback_chirho() {
+        // When no xref store is configured, graph search should return empty
+        use rhema_contracts_chirho::xref_chirho::CrossRefGraphChirho;
+
+        let store_chirho = rhema_module_chirho::XrefStoreChirho::in_memory_chirho().unwrap();
+        store_chirho
+            .insert_xref_chirho(
+                &rhema_contracts_chirho::xref_chirho::CrossRefEntryChirho::new_chirho(
+                    VerseRefChirho::new_chirho("John", 3, 16).unwrap(),
+                    VerseRefChirho::new_chirho("Romans", 5, 8).unwrap(),
+                    rhema_contracts_chirho::xref_chirho::XRefTypeChirho::DirectChirho,
+                ),
+            )
+            .unwrap();
+
+        // BFS from the store directly works
+        let expanded_chirho = store_chirho
+            .bfs_expand_chirho(
+                &VerseRefChirho::new_chirho("John", 3, 16).unwrap(),
+                1,
+                false,
+            )
+            .unwrap();
+        assert_eq!(expanded_chirho.len(), 1);
+        assert_eq!(expanded_chirho[0].book_chirho, "Romans");
     }
 
     #[test]

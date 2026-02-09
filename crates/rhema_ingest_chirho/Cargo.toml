@@ -10,6 +10,9 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "SWORD/OSIS/TEI/IMP importers and normalization into canonical corpus"
+readme = "../../README.md"
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
 rhema_contracts_chirho.workspace = true
@@ -18,6 +21,7 @@ thiserror.workspace = true
 anyhow.workspace = true
 log.workspace = true
 quick-xml.workspace = true
+regex.workspace = true
 
 [lints]
 workspace = true

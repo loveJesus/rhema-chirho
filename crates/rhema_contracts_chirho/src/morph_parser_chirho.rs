@@ -144,17 +144,17 @@ fn parse_robinson_chirho(
             let last_chars_chirho: Vec<char> = last_part_chirho.chars().collect();
             // Could be CGN or NG or similar
             for ch_chirho in &last_chars_chirho {
-                if case_chirho.is_none() {
-                    if let Some(c_chirho) = parse_robinson_case_chirho(*ch_chirho) {
-                        case_chirho = Some(c_chirho);
-                        continue;
-                    }
+                if case_chirho.is_none()
+                    && let Some(c_chirho) = parse_robinson_case_chirho(*ch_chirho)
+                {
+                    case_chirho = Some(c_chirho);
+                    continue;
                 }
-                if gender_chirho.is_none() {
-                    if let Some(g_chirho) = parse_robinson_gender_chirho(*ch_chirho) {
-                        gender_chirho = Some(g_chirho);
-                        continue;
-                    }
+                if gender_chirho.is_none()
+                    && let Some(g_chirho) = parse_robinson_gender_chirho(*ch_chirho)
+                {
+                    gender_chirho = Some(g_chirho);
+                    continue;
                 }
                 if number_chirho.is_none() {
                     number_chirho = parse_robinson_number_chirho(*ch_chirho);

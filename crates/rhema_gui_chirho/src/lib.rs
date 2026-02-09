@@ -8,3 +8,5 @@
 //!
 //! This crate provides reusable GUI components for building Bible study applications,
 //! including Slint-based widgets, web components, and theming support.
+
+pub mod query_builder_chirho;

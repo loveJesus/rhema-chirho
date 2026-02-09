@@ -10,6 +10,9 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "CPU/SIMD runtime and backend dispatch"
+readme = "../../README.md"
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
 rhema_contracts_chirho.workspace = true
@@ -17,6 +20,7 @@ rhema_query_chirho.workspace = true
 rhema_ingest_chirho.workspace = true
 rhema_index_chirho.workspace = true
 rhema_ai_chirho = { version = "0.1.0", path = "../rhema_ai_chirho" }
+rhema_module_chirho.workspace = true
 rsword_chirho.workspace = true
 thiserror.workspace = true
 anyhow.workspace = true

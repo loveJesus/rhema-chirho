@@ -16,6 +16,7 @@
 pub mod sword_adapter_chirho;
 pub mod error_chirho;
 pub mod token_extractor_chirho;
+pub mod xref_extractor_chirho;
 
 pub use sword_adapter_chirho::SwordAdapterChirho;
 pub use error_chirho::IngestErrorChirho;

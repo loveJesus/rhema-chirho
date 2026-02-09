@@ -32,4 +32,7 @@ pub enum QueryErrorChirho {
 
     #[error("Invalid morphology syntax: '{value_chirho}'")]
     InvalidMorphSyntaxChirho { value_chirho: String },
+
+    #[error("Invalid cross-reference: '{value_chirho}'")]
+    InvalidXrefChirho { value_chirho: String },
 }

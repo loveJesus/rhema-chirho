@@ -117,6 +117,24 @@ pub enum QueryNodeChirho {
         text_chirho: String,
         scope_chirho: Option<ScopeChirho>,
     },
+
+    // ── Phase 5+: Domain, Sense, Syntax nodes ───────────────────
+
+    /// Semantic domain search — find verses tagged with a semantic domain.
+    DomainChirho {
+        domain_chirho: String,
+    },
+
+    /// Sense/word-sense disambiguation search.
+    SenseChirho {
+        sense_chirho: String,
+    },
+
+    /// Syntax/clause search — find clauses by type and optional scope.
+    SyntaxChirho {
+        clause_type_chirho: String,
+        scope_chirho: Option<ScopeChirho>,
+    },
 }
 
 /// A complete query with IR and metadata.
@@ -317,6 +335,52 @@ mod tests_chirho {
             }),
         };
         assert!(matches!(node_chirho, QueryNodeChirho::ScopedChirho { .. }));
+    }
+
+    #[test]
+    fn test_domain_node_serde_chirho() {
+        let node_chirho = QueryNodeChirho::DomainChirho {
+            domain_chirho: "love".to_string(),
+        };
+        let json_chirho = serde_json::to_string(&node_chirho).unwrap();
+        let parsed_chirho: QueryNodeChirho = serde_json::from_str(&json_chirho).unwrap();
+        if let QueryNodeChirho::DomainChirho { domain_chirho } = &parsed_chirho {
+            assert_eq!(domain_chirho, "love");
+        } else {
+            panic!("Expected DomainChirho");
+        }
+    }
+
+    #[test]
+    fn test_sense_node_serde_chirho() {
+        let node_chirho = QueryNodeChirho::SenseChirho {
+            sense_chirho: "love.01".to_string(),
+        };
+        let json_chirho = serde_json::to_string(&node_chirho).unwrap();
+        let parsed_chirho: QueryNodeChirho = serde_json::from_str(&json_chirho).unwrap();
+        if let QueryNodeChirho::SenseChirho { sense_chirho } = &parsed_chirho {
+            assert_eq!(sense_chirho, "love.01");
+        } else {
+            panic!("Expected SenseChirho");
+        }
+    }
+
+    #[test]
+    fn test_syntax_node_serde_chirho() {
+        let node_chirho = QueryNodeChirho::SyntaxChirho {
+            clause_type_chirho: "relative".to_string(),
+            scope_chirho: None,
+        };
+        let json_chirho = serde_json::to_string(&node_chirho).unwrap();
+        let parsed_chirho: QueryNodeChirho = serde_json::from_str(&json_chirho).unwrap();
+        if let QueryNodeChirho::SyntaxChirho {
+            clause_type_chirho, ..
+        } = &parsed_chirho
+        {
+            assert_eq!(clause_type_chirho, "relative");
+        } else {
+            panic!("Expected SyntaxChirho");
+        }
     }
 
     #[test]

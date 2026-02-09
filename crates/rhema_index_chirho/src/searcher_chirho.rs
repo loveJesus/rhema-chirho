@@ -129,7 +129,6 @@ impl IndexSearcherChirho {
             tantivy_terms_chirho
                 .into_iter()
                 .enumerate()
-                .map(|(i_chirho, t_chirho)| (i_chirho, t_chirho))
                 .collect(),
             slop_chirho,
         );

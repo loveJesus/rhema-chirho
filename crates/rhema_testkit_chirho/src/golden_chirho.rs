@@ -83,13 +83,13 @@ impl GoldenHarnessChirho {
             ));
         }
 
-        if let Some(max_chirho) = fixture_chirho.max_hits_chirho {
-            if hit_count_chirho > max_chirho {
-                issues_chirho.push(format!(
-                    "Too many hits: {} > {}",
-                    hit_count_chirho, max_chirho
-                ));
-            }
+        if let Some(max_chirho) = fixture_chirho.max_hits_chirho
+            && hit_count_chirho > max_chirho
+        {
+            issues_chirho.push(format!(
+                "Too many hits: {} > {}",
+                hit_count_chirho, max_chirho
+            ));
         }
 
         for required_chirho in &fixture_chirho.must_contain_chirho {

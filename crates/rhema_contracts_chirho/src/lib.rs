@@ -19,3 +19,5 @@ pub mod error_chirho;
 pub mod morphology_chirho;
 pub mod morph_parser_chirho;
 pub mod capability_chirho;
+pub mod xref_chirho;
+pub mod saved_search_chirho;

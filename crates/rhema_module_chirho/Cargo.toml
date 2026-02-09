@@ -10,8 +10,9 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Self-contained SQLite module format (.rhema) for distributing Bible modules"
-keywords = ["bible", "module", "sqlite"]
-categories = ["text-processing"]
+readme = "../../README.md"
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
 rhema_contracts_chirho.workspace = true
@@ -20,6 +21,8 @@ log.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 rusqlite = { version = "0.32", features = ["bundled"] }
+rsword_chirho.workspace = true
+uuid.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

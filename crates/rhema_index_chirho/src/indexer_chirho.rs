@@ -138,7 +138,7 @@ impl ModuleIndexerChirho {
                         .unwrap_or_default();
 
                     // Strip HTML/XML tags for plain text indexing.
-                    let plain_text_chirho = strip_tags_chirho(&text_chirho);
+                    let plain_text_chirho = strip_tags_chirho(text_chirho);
 
                     // Build Tantivy document.
                     let key_chirho = format!(
@@ -191,48 +191,48 @@ impl ModuleIndexerChirho {
                                 if let Ok(parsed_chirho) = MorphParserChirho::parse_chirho(code_str_chirho) {
                                     doc_chirho.add_text(
                                         self.schema_chirho.pos_field_chirho,
-                                        &format!("{:?}", parsed_chirho.part_of_speech_chirho),
+                                        format!("{:?}", parsed_chirho.part_of_speech_chirho),
                                     );
                                     if let Some(ref t_chirho) = parsed_chirho.tense_chirho {
                                         doc_chirho.add_text(
                                             self.schema_chirho.tense_field_chirho,
-                                            &format!("{t_chirho:?}"),
+                                            format!("{t_chirho:?}"),
                                         );
                                     }
                                     if let Some(ref v_chirho) = parsed_chirho.voice_chirho {
                                         doc_chirho.add_text(
                                             self.schema_chirho.voice_field_chirho,
-                                            &format!("{v_chirho:?}"),
+                                            format!("{v_chirho:?}"),
                                         );
                                     }
                                     if let Some(ref m_chirho) = parsed_chirho.mood_chirho {
                                         doc_chirho.add_text(
                                             self.schema_chirho.mood_field_chirho,
-                                            &format!("{m_chirho:?}"),
+                                            format!("{m_chirho:?}"),
                                         );
                                     }
                                     if let Some(ref c_chirho) = parsed_chirho.case_chirho {
                                         doc_chirho.add_text(
                                             self.schema_chirho.case_field_chirho,
-                                            &format!("{c_chirho:?}"),
+                                            format!("{c_chirho:?}"),
                                         );
                                     }
                                     if let Some(ref n_chirho) = parsed_chirho.number_chirho {
                                         doc_chirho.add_text(
                                             self.schema_chirho.number_field_chirho,
-                                            &format!("{n_chirho:?}"),
+                                            format!("{n_chirho:?}"),
                                         );
                                     }
                                     if let Some(ref g_chirho) = parsed_chirho.gender_chirho {
                                         doc_chirho.add_text(
                                             self.schema_chirho.gender_field_chirho,
-                                            &format!("{g_chirho:?}"),
+                                            format!("{g_chirho:?}"),
                                         );
                                     }
                                     if let Some(ref p_chirho) = parsed_chirho.person_chirho {
                                         doc_chirho.add_text(
                                             self.schema_chirho.person_field_chirho,
-                                            &format!("{p_chirho:?}"),
+                                            format!("{p_chirho:?}"),
                                         );
                                     }
                                 }
@@ -242,13 +242,13 @@ impl ModuleIndexerChirho {
                         if !morph_codes_chirho.is_empty() {
                             doc_chirho.add_text(
                                 self.schema_chirho.morph_field_chirho,
-                                &morph_codes_chirho.join(" "),
+                                morph_codes_chirho.join(" "),
                             );
                         }
                         if !lemma_strings_chirho.is_empty() {
                             doc_chirho.add_text(
                                 self.schema_chirho.lemma_field_chirho,
-                                &lemma_strings_chirho.join(" "),
+                                lemma_strings_chirho.join(" "),
                             );
                         }
                     }

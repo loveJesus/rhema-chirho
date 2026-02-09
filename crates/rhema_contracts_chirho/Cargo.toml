@@ -10,8 +10,9 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Shared type-level contracts, newtypes, DTOs, and trait definitions for the Rhema Chirho engine"
-keywords = ["bible", "contracts", "types"]
-categories = ["text-processing"]
+readme = "../../README.md"
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
 serde.workspace = true

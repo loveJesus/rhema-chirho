@@ -30,3 +30,6 @@ Thumbs.db
 
 # Tantivy index directories
 rhema_indexes/
+
+# Imported data files (fetched by scripts, not committed)
+data_chirho/

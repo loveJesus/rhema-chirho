@@ -10,15 +10,25 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "WASM bindings, IndexedDB storage, web worker runtime"
+readme = "../../README.md"
+keywords.workspace = true
+categories.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 rhema_contracts_chirho.workspace = true
 rhema_core_chirho.workspace = true
+rhema_query_chirho.workspace = true
 thiserror.workspace = true
 anyhow.workspace = true
 log.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen.workspace = true
 
 [lints]
 workspace = true

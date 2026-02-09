@@ -8,3 +8,9 @@
 //!
 //! This crate provides HTTP REST and gRPC API servers for exposing Rhema
 //! functionality over the network, with full OpenAPI specification support.
+
+pub mod accordance_chirho;
+pub mod error_chirho;
+pub mod handlers_chirho;
+pub mod router_chirho;
+pub mod biblia_client_chirho;

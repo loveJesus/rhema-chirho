@@ -8,3 +8,5 @@
 //!
 //! This crate provides WebAssembly bindings for running Rhema in web browsers,
 //! including IndexedDB storage integration and web worker support for background processing.
+
+pub mod api_chirho;

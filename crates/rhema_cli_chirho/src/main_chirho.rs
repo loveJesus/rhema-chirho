@@ -75,6 +75,25 @@ enum CommandChirho {
         /// Show execution plan
         #[arg(long = "explain")]
         explain_chirho: bool,
+
+        /// Save this search with a name for later re-use
+        #[arg(long = "save")]
+        save_chirho: Option<String>,
+
+        /// Load and execute a previously saved search by name
+        #[arg(long = "load")]
+        load_chirho: Option<String>,
+    },
+
+    /// Manage saved searches
+    SavedSearches {
+        /// List all saved searches
+        #[arg(short = 'l', long = "list")]
+        list_chirho: bool,
+
+        /// Filter by tag
+        #[arg(short = 't', long = "tag")]
+        tag_chirho: Option<String>,
     },
 
     /// Parse and explain a query without executing
@@ -136,6 +155,8 @@ fn main() -> anyhow::Result<()> {
             query_chirho,
             max_results_chirho,
             explain_chirho,
+            save_chirho,
+            load_chirho,
         } => {
             commands_chirho::cmd_search_chirho(
                 &module_chirho,
@@ -143,6 +164,19 @@ fn main() -> anyhow::Result<()> {
                 max_results_chirho,
                 explain_chirho,
             )?;
+            if let Some(name_chirho) = save_chirho {
+                commands_chirho::cmd_save_search_chirho(&name_chirho, &query_chirho)?;
+            }
+            if let Some(name_chirho) = load_chirho {
+                commands_chirho::cmd_load_search_chirho(&name_chirho)?;
+            }
+        }
+
+        CommandChirho::SavedSearches {
+            list_chirho,
+            tag_chirho,
+        } => {
+            commands_chirho::cmd_list_saved_searches_chirho(list_chirho, tag_chirho.as_deref())?;
         }
 
         CommandChirho::Parse { query_chirho } => {

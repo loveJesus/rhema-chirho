@@ -8,3 +8,5 @@
 //!
 //! This crate provides FPGA acceleration interfaces for ultra-fast search operations
 //! using the proprietary Chi-Rho packed hierarchical bit-domain engine.
+
+pub mod bitset_chirho;

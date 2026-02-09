@@ -23,9 +23,18 @@ pub mod writer_chirho;
 pub mod reader_chirho;
 pub mod morph_query_chirho;
 pub mod converter_chirho;
+pub mod xref_store_chirho;
+pub mod xref_importer_chirho;
+pub mod saved_search_store_chirho;
+pub mod domain_store_chirho;
+pub mod syntax_store_chirho;
 
 pub use error_chirho::ModuleErrorChirho;
 pub use writer_chirho::{ModuleWriterChirho, TokenEntryChirho, VerseEntryChirho};
 pub use reader_chirho::{ModuleReaderChirho, TokenRowChirho, VerseRowChirho};
 pub use morph_query_chirho::{search_morph_chirho, MorphHitChirho};
 pub use converter_chirho::{ConversionResultChirho, SwordToRhemaConverterChirho};
+pub use xref_store_chirho::XrefStoreChirho;
+pub use saved_search_store_chirho::SavedSearchStoreChirho;
+pub use domain_store_chirho::DomainStoreChirho;
+pub use syntax_store_chirho::SyntaxStoreChirho;

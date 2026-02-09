@@ -10,12 +10,18 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "GUI widget library: Slint components, web components, themes"
+readme = "../../README.md"
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
 rhema_contracts_chirho.workspace = true
 rhema_integration_chirho.workspace = true
+rhema_query_chirho.workspace = true
 thiserror.workspace = true
 log.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 
 [lints]
 workspace = true

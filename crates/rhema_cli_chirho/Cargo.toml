@@ -10,6 +10,9 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "CLI tools: diatheke, REPL, TUI, morph search, etc."
+readme = "../../README.md"
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
 rhema_contracts_chirho.workspace = true
@@ -25,6 +28,7 @@ log.workspace = true
 clap.workspace = true
 serde_json.workspace = true
 env_logger = "0.11"
+rhema_module_chirho.workspace = true
 
 [[bin]]
 name = "rhema_chirho"
