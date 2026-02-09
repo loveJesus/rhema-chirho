@@ -63,7 +63,8 @@ impl SemanticImporterChirho {
         // Step 2: Load senses with their best-fit domain
         let senses_chirho = self.load_senses_with_domains_chirho(&domain_names_chirho)?;
 
-        // Step 3: Insert senses and map verses (in a conceptual batch)
+        // Step 3: Insert senses in a single transaction (~20K rows)
+        store_chirho.begin_transaction_chirho()?;
         for sense_chirho in &senses_chirho {
             store_chirho.insert_sense_chirho(
                 &sense_chirho.sense_key_chirho,
@@ -72,8 +73,9 @@ impl SemanticImporterChirho {
             )?;
             result_chirho.senses_imported_chirho += 1;
         }
+        store_chirho.commit_transaction_chirho()?;
 
-        // Step 4: Load verse mappings (word occurrences → senses → verses)
+        // Step 4: Load verse mappings in batched transactions (~448K rows)
         let verse_count_chirho = self.map_verses_chirho(store_chirho, &senses_chirho)?;
         result_chirho.verse_mappings_chirho = verse_count_chirho;
 
@@ -191,11 +193,15 @@ impl SemanticImporterChirho {
     }
 
     /// Map word occurrences to their verses in the domain store.
+    ///
+    /// Uses batched transactions (every 50 000 rows) for performance with ~448K rows.
     fn map_verses_chirho(
         &self,
         store_chirho: &DomainStoreChirho,
         senses_chirho: &[SenseEntryChirho],
     ) -> Result<usize, ModuleErrorChirho> {
+        const BATCH_SIZE_CHIRHO: usize = 50_000;
+
         // Build sense_id → sense_key lookup
         let sense_key_map_chirho: std::collections::HashMap<i64, &str> = senses_chirho
             .iter()
@@ -219,8 +225,11 @@ impl SemanticImporterChirho {
         })?;
 
         let mut count_chirho = 0usize;
+        let mut batch_count_chirho = 0usize;
         let mut seen_chirho: std::collections::HashSet<(i64, i64, i64, i64)> =
             std::collections::HashSet::new();
+
+        store_chirho.begin_transaction_chirho()?;
 
         for row_chirho in rows_chirho {
             let (sense_id_chirho, book_num_chirho, chapter_chirho, verse_chirho) = row_chirho?;
@@ -242,8 +251,17 @@ impl SemanticImporterChirho {
                 store_chirho
                     .map_verse_to_sense_chirho(sense_key_chirho, &verse_ref_chirho)?;
                 count_chirho += 1;
+                batch_count_chirho += 1;
+
+                if batch_count_chirho >= BATCH_SIZE_CHIRHO {
+                    store_chirho.commit_transaction_chirho()?;
+                    store_chirho.begin_transaction_chirho()?;
+                    batch_count_chirho = 0;
+                }
             }
         }
+
+        store_chirho.commit_transaction_chirho()?;
 
         Ok(count_chirho)
     }

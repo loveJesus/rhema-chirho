@@ -79,6 +79,18 @@ impl DomainStoreChirho {
         Ok(())
     }
 
+    /// Begin a transaction for bulk operations.
+    pub fn begin_transaction_chirho(&self) -> Result<(), ModuleErrorChirho> {
+        self.conn_chirho.execute_batch("BEGIN TRANSACTION")?;
+        Ok(())
+    }
+
+    /// Commit the current transaction.
+    pub fn commit_transaction_chirho(&self) -> Result<(), ModuleErrorChirho> {
+        self.conn_chirho.execute_batch("COMMIT")?;
+        Ok(())
+    }
+
     /// Get all verse references for a given semantic domain.
     pub fn verses_by_domain_chirho(
         &self,
