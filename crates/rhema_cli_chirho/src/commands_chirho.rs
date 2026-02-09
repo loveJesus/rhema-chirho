@@ -332,6 +332,42 @@ fn saved_search_store_path_chirho() -> anyhow::Result<String> {
     Ok(path_chirho.to_string_lossy().to_string())
 }
 
+/// Import semantic domain data from a semantic-chirho database.
+pub fn cmd_import_domains_chirho(
+    source_path_chirho: &str,
+    output_path_chirho: &str,
+) -> anyhow::Result<()> {
+    use rhema_module_chirho::{DomainStoreChirho, SemanticImporterChirho};
+
+    println!("Opening source: {source_path_chirho}");
+
+    let importer_chirho = SemanticImporterChirho::open_chirho(source_path_chirho)
+        .map_err(|e_chirho| anyhow::anyhow!("Failed to open source DB: {e_chirho}"))?;
+
+    // Ensure output directory exists
+    if let Some(parent_chirho) = std::path::Path::new(output_path_chirho).parent() {
+        std::fs::create_dir_all(parent_chirho)?;
+    }
+
+    println!("Creating domain store: {output_path_chirho}");
+    let store_chirho = DomainStoreChirho::open_chirho(output_path_chirho)
+        .map_err(|e_chirho| anyhow::anyhow!("Failed to create domain store: {e_chirho}"))?;
+
+    println!("Importing senses and verse mappings...");
+    let result_chirho = importer_chirho
+        .import_to_store_chirho(&store_chirho)
+        .map_err(|e_chirho| anyhow::anyhow!("Import failed: {e_chirho}"))?;
+
+    println!("Import complete:");
+    println!("  Senses imported: {}", result_chirho.senses_imported_chirho);
+    println!("  Verse mappings:  {}", result_chirho.verse_mappings_chirho);
+    println!("  Senses skipped:  {}", result_chirho.senses_skipped_chirho);
+    println!("\nDomain store written to: {output_path_chirho}");
+    println!("Use with: rhema_chirho search --domain-store {output_path_chirho} KJV \"domain:know\"");
+
+    Ok(())
+}
+
 /// Strip HTML/XML tags for plain text output.
 fn strip_tags_chirho(text_chirho: &str) -> String {
     let mut result_chirho = String::with_capacity(text_chirho.len());

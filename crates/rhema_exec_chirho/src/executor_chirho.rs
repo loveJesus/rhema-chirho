@@ -32,6 +32,8 @@ pub struct QueryExecutorImplChirho {
     index_base_chirho: Option<PathBuf>,
     /// Path to the cross-reference SQLite store, if configured.
     xref_store_path_chirho: Option<PathBuf>,
+    /// Path to the semantic domain SQLite store, if configured.
+    domain_store_path_chirho: Option<PathBuf>,
 }
 
 impl QueryExecutorImplChirho {
@@ -46,6 +48,7 @@ impl QueryExecutorImplChirho {
             sword_adapter_chirho,
             index_base_chirho,
             xref_store_path_chirho: None,
+            domain_store_path_chirho: None,
         })
     }
 
@@ -55,6 +58,7 @@ impl QueryExecutorImplChirho {
             sword_adapter_chirho,
             index_base_chirho: dirs_index_base_chirho(),
             xref_store_path_chirho: None,
+            domain_store_path_chirho: None,
         }
     }
 
@@ -67,6 +71,12 @@ impl QueryExecutorImplChirho {
     /// Set the cross-reference store path.
     pub fn with_xref_store_chirho(mut self, path_chirho: &Path) -> Self {
         self.xref_store_path_chirho = Some(path_chirho.to_path_buf());
+        self
+    }
+
+    /// Set the semantic domain store path.
+    pub fn with_domain_store_chirho(mut self, path_chirho: &Path) -> Self {
+        self.domain_store_path_chirho = Some(path_chirho.to_path_buf());
         self
     }
 
@@ -357,20 +367,11 @@ impl QueryExecutorImplChirho {
             // ── Phase 5+: Domain / Sense / Syntax plan steps ────────
 
             PlanStepChirho::DomainLookupChirho { domain_chirho } => {
-                log::debug!(
-                    "DomainLookup for '{}' — domain store required",
-                    domain_chirho
-                );
-                // Graceful fallback: return empty when no domain store configured
-                Ok(Vec::new())
+                self.execute_domain_lookup_chirho(domain_chirho, module_name_chirho)
             }
 
             PlanStepChirho::SenseLookupChirho { sense_chirho } => {
-                log::debug!(
-                    "SenseLookup for '{}' — domain store required",
-                    sense_chirho
-                );
-                Ok(Vec::new())
+                self.execute_sense_lookup_chirho(sense_chirho, module_name_chirho)
             }
 
             PlanStepChirho::SyntaxSearchChirho { clause_type_chirho } => {
@@ -457,6 +458,124 @@ impl QueryExecutorImplChirho {
             });
         }
 
+        Ok(hits_chirho)
+    }
+
+    /// Execute a domain lookup via the semantic domain store.
+    fn execute_domain_lookup_chirho(
+        &self,
+        domain_chirho: &str,
+        module_name_chirho: &str,
+    ) -> Result<Vec<SearchHitChirho>, ExecErrorChirho> {
+        let domain_path_chirho = match &self.domain_store_path_chirho {
+            Some(p_chirho) => p_chirho.clone(),
+            None => {
+                log::warn!(
+                    "DomainLookup for '{}' — no domain store configured, returning empty",
+                    domain_chirho
+                );
+                return Ok(Vec::new());
+            }
+        };
+
+        let path_str_chirho = domain_path_chirho.to_string_lossy().to_string();
+        let store_chirho =
+            rhema_module_chirho::DomainStoreChirho::open_chirho(&path_str_chirho)
+                .map_err(|e_chirho| ExecErrorChirho::DomainStoreChirho {
+                    reason_chirho: format!("Failed to open domain store: {e_chirho}"),
+                })?;
+
+        let refs_chirho = store_chirho
+            .verses_by_domain_chirho(domain_chirho)
+            .map_err(|e_chirho| ExecErrorChirho::DomainStoreChirho {
+                reason_chirho: format!("Domain lookup failed: {e_chirho}"),
+            })?;
+
+        let mut hits_chirho = Vec::with_capacity(refs_chirho.len());
+        for ref_chirho in &refs_chirho {
+            let key_str_chirho = format!(
+                "{} {}:{}",
+                ref_chirho.book_chirho, ref_chirho.chapter_chirho, ref_chirho.verse_chirho
+            );
+            let text_chirho = self
+                .sword_adapter_chirho
+                .manager_chirho()
+                .load_module_chirho(module_name_chirho)
+                .ok()
+                .and_then(|loaded_chirho| loaded_chirho.read_entry_chirho(&key_str_chirho).ok())
+                .unwrap_or_default();
+
+            hits_chirho.push(SearchHitChirho {
+                verse_ref_chirho: ref_chirho.clone(),
+                text_chirho,
+                highlighted_text_chirho: None,
+                score_chirho: 1.0,
+                matched_positions_chirho: Vec::new(),
+                explain_chirho: None,
+                semantic_score_chirho: None,
+                hybrid_score_chirho: None,
+                semantic_explain_chirho: Some(format!("domain:{domain_chirho}")),
+            });
+        }
+        Ok(hits_chirho)
+    }
+
+    /// Execute a sense lookup via the semantic domain store.
+    fn execute_sense_lookup_chirho(
+        &self,
+        sense_chirho: &str,
+        module_name_chirho: &str,
+    ) -> Result<Vec<SearchHitChirho>, ExecErrorChirho> {
+        let domain_path_chirho = match &self.domain_store_path_chirho {
+            Some(p_chirho) => p_chirho.clone(),
+            None => {
+                log::warn!(
+                    "SenseLookup for '{}' — no domain store configured, returning empty",
+                    sense_chirho
+                );
+                return Ok(Vec::new());
+            }
+        };
+
+        let path_str_chirho = domain_path_chirho.to_string_lossy().to_string();
+        let store_chirho =
+            rhema_module_chirho::DomainStoreChirho::open_chirho(&path_str_chirho)
+                .map_err(|e_chirho| ExecErrorChirho::DomainStoreChirho {
+                    reason_chirho: format!("Failed to open domain store: {e_chirho}"),
+                })?;
+
+        let refs_chirho = store_chirho
+            .verses_by_sense_chirho(sense_chirho)
+            .map_err(|e_chirho| ExecErrorChirho::DomainStoreChirho {
+                reason_chirho: format!("Sense lookup failed: {e_chirho}"),
+            })?;
+
+        let mut hits_chirho = Vec::with_capacity(refs_chirho.len());
+        for ref_chirho in &refs_chirho {
+            let key_str_chirho = format!(
+                "{} {}:{}",
+                ref_chirho.book_chirho, ref_chirho.chapter_chirho, ref_chirho.verse_chirho
+            );
+            let text_chirho = self
+                .sword_adapter_chirho
+                .manager_chirho()
+                .load_module_chirho(module_name_chirho)
+                .ok()
+                .and_then(|loaded_chirho| loaded_chirho.read_entry_chirho(&key_str_chirho).ok())
+                .unwrap_or_default();
+
+            hits_chirho.push(SearchHitChirho {
+                verse_ref_chirho: ref_chirho.clone(),
+                text_chirho,
+                highlighted_text_chirho: None,
+                score_chirho: 1.0,
+                matched_positions_chirho: Vec::new(),
+                explain_chirho: None,
+                semantic_score_chirho: None,
+                hybrid_score_chirho: None,
+                semantic_explain_chirho: Some(format!("sense:{sense_chirho}")),
+            });
+        }
         Ok(hits_chirho)
     }
 

@@ -28,6 +28,7 @@ pub mod xref_importer_chirho;
 pub mod saved_search_store_chirho;
 pub mod domain_store_chirho;
 pub mod syntax_store_chirho;
+pub mod semantic_importer_chirho;
 
 pub use error_chirho::ModuleErrorChirho;
 pub use writer_chirho::{ModuleWriterChirho, TokenEntryChirho, VerseEntryChirho};
@@ -38,3 +39,4 @@ pub use xref_store_chirho::XrefStoreChirho;
 pub use saved_search_store_chirho::SavedSearchStoreChirho;
 pub use domain_store_chirho::DomainStoreChirho;
 pub use syntax_store_chirho::SyntaxStoreChirho;
+pub use semantic_importer_chirho::{ImportResultChirho, SemanticImporterChirho};

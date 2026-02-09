@@ -113,6 +113,17 @@ enum CommandChirho {
         #[arg(short = 'd', long = "delete")]
         delete_chirho: bool,
     },
+
+    /// Import semantic domain data from a semantic-chirho database
+    ImportDomains {
+        /// Path to the semantic-chirho SQLite database
+        #[arg(required = true)]
+        source_chirho: String,
+
+        /// Output path for the domain store (default: data_chirho/domains.db)
+        #[arg(short = 'o', long = "output", default_value = "data_chirho/domains.db")]
+        output_chirho: String,
+    },
 }
 
 fn main() -> anyhow::Result<()> {
@@ -188,6 +199,13 @@ fn main() -> anyhow::Result<()> {
             delete_chirho,
         } => {
             commands_chirho::cmd_index_chirho(&module_chirho, delete_chirho)?;
+        }
+
+        CommandChirho::ImportDomains {
+            source_chirho,
+            output_chirho,
+        } => {
+            commands_chirho::cmd_import_domains_chirho(&source_chirho, &output_chirho)?;
         }
     }
 
