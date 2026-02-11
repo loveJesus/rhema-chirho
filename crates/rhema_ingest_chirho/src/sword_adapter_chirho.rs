@@ -29,7 +29,7 @@ use crate::token_extractor_chirho::TokenExtractorChirho;
 /// SWORD binary modules and Rhema's canonical corpus model.
 pub struct SwordAdapterChirho {
     manager_chirho: SwMgrChirho,
-    module_paths_chirho: Vec<PathBuf>,
+    _module_paths_chirho: Vec<PathBuf>,
 }
 
 impl SwordAdapterChirho {
@@ -45,7 +45,7 @@ impl SwordAdapterChirho {
 
         Ok(Self {
             manager_chirho,
-            module_paths_chirho: Vec::new(),
+            _module_paths_chirho: Vec::new(),
         })
     }
 
@@ -65,7 +65,7 @@ impl SwordAdapterChirho {
 
         Ok(Self {
             manager_chirho,
-            module_paths_chirho: vec![path_chirho.to_path_buf()],
+            _module_paths_chirho: vec![path_chirho.to_path_buf()],
         })
     }
 
